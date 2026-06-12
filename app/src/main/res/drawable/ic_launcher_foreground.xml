@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Subtle Background Logic Grid -->
+    <path
+        android:strokeColor="#1AFFB300"
+        android:strokeWidth="2.5"
+        android:pathData="M30 30h48 M30 46h48 M30 62h48 M30 30v48 M46 30v48 M62 30v48" />
+
+    <!-- Magnifying Glass Handle with Gold and Crimson Accent -->
+    <path
+        android:strokeColor="#FFB300"
+        android:strokeWidth="6.5"
+        android:strokeLineCap="round"
+        android:pathData="M61 58 L78 75" />
+        
+    <path
+        android:strokeColor="#D32F2F"
+        android:strokeWidth="6.5"
+        android:strokeLineCap="round"
+        android:pathData="M78 75 L85 82" />
+
+    <!-- Magnifying Glass Glass Circle Frame -->
+    <path
+        android:fillColor="#1A000000"
+        android:strokeColor="#FFB300"
+        android:strokeWidth="5.5"
+        android:pathData="M 45,42 A 18,18 0 1,1 44.9,42 Z" />
+
+    <!-- Highlight shimmer on glass -->
+    <path
+        android:fillColor="#88FFFFFF"
+        android:pathData="M 39 33 A 12 12 0 0 1 51 30 A 1 1 0 0 1 51 32 A 10 10 0 0 0 40 35 A 1 1 0 0 1 39 33 Z" />
+
+</vector>

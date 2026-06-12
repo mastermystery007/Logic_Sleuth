@@ -1,0 +1,6 @@
+{
+  "name": "Detective Logic Grid",
+  "description": "Solve detective mystery riddles using an interactive logic elimination grid, handle clues, interrogate suspects, and make accusations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
