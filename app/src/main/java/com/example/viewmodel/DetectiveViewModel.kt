@@ -26,10 +26,6 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
     // List of all cases available
     val cases: List<Case> = repository.getCases()
 
-    // Selection filters for Dashboard
-    private val _difficultyFilter = MutableStateFlow("All")
-    val difficultyFilter: StateFlow<String> = _difficultyFilter.asStateFlow()
-
     // Set of complete case IDs
     val completedCaseIds: StateFlow<Set<Int>> = repository.completedCases
         .map { list -> list.map { it.caseId }.toSet() }
@@ -48,6 +44,9 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
     private val _chosenLocation = MutableStateFlow("")
     val chosenLocation: StateFlow<String> = _chosenLocation.asStateFlow()
 
+    private val _chosenLiar = MutableStateFlow("")
+    val chosenLiar: StateFlow<String> = _chosenLiar.asStateFlow()
+
     private val _accusationResult = MutableStateFlow<AccusationResult>(AccusationResult.None)
     val accusationResult: StateFlow<AccusationResult> = _accusationResult.asStateFlow()
 
@@ -65,12 +64,18 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val activeNotes: StateFlow<String> = _activeCaseId
+    val checkedClues: StateFlow<Set<Int>> = _activeCaseId
         .flatMapLatest { id ->
             if (id == null) flowOf(null) else repository.getNotesForCase(id)
         }
-        .map { it?.notes ?: "" }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+        .map { progress ->
+            progress?.notes
+                ?.split(",")
+                ?.mapNotNull { it.toIntOrNull() }
+                ?.toSet()
+                ?: emptySet()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val isActiveCaseCompleted: StateFlow<Boolean> = combine(_activeCaseId, completedCaseIds) { activeId, completedIds ->
@@ -83,86 +88,73 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         _chosenSuspect.value = ""
         _chosenWeapon.value = ""
         _chosenLocation.value = ""
+        _chosenLiar.value = ""
         _accusationResult.value = AccusationResult.None
     }
 
-    fun setDifficultyFilter(filter: String) {
-        _difficultyFilter.value = filter
-    }
+    // Grid layout:
+    // rows 0..2 = locations, rows 3..5 = weapons
+    // cols 0..2 = suspects, cols 3..5 = weapons
+    // active blocks: Location × Suspect, Location × Weapon, Weapon × Suspect
+    // bottom-right Weapon × Weapon block is disabled.
+    private fun isLocationSuspectCell(row: Int, col: Int): Boolean =
+        row in 0..2 && col in 0..2
 
-    // Grid Cell Selection: empty "" -> "X" -> "O" -> empty ""
+    private fun isLocationWeaponCell(row: Int, col: Int): Boolean =
+        row in 0..2 && col in 3..5
+
+    private fun isWeaponSuspectCell(row: Int, col: Int): Boolean =
+        row in 3..5 && col in 0..2
+
+    private fun isPlayableCell(row: Int, col: Int): Boolean =
+        isLocationSuspectCell(row, col) ||
+            isLocationWeaponCell(row, col) ||
+            isWeaponSuspectCell(row, col)
+
+    // Grid Cell Selection: unknown "" -> "X" -> "O" -> unknown ""
     fun toggleGridCell(row: Int, col: Int) {
         val caseId = _activeCaseId.value ?: return
-        
+        if (!isPlayableCell(row, col)) return
+
         viewModelScope.launch {
-            // Read active grid cell from flow or direct query safely
             val currentState = activeGrid.value
-            val pair = Pair(row, col)
-            val nextMark = when (currentState[pair]) {
+            val nextMark = when (currentState[Pair(row, col)]) {
                 "X" -> "O"
                 "O" -> ""
                 else -> "X"
             }
+            val cellsToSave = linkedMapOf<Pair<Int, Int>, GridCellState>()
 
-            if (nextMark.isEmpty()) {
-                val cellState = GridCellState(
-                    cellId = "${caseId}_${row}_${col}",
-                    caseId = caseId,
-                    row = row,
-                    col = col,
-                    mark = ""
-                )
-                repository.saveGridCell(cellState)
-            } else {
-                if (nextMark == "O") {
-                    val cellsToSave = mutableListOf<GridCellState>()
-                    
-                    // Main tapped cell is "O"
-                    cellsToSave.add(
-                        GridCellState("${caseId}_${row}_${col}", caseId, row, col, "O")
-                    )
+            fun queue(r: Int, c: Int, mark: String) {
+                if (!isPlayableCell(r, c)) return
+                cellsToSave[Pair(r, c)] = GridCellState("${caseId}_${r}_${c}", caseId, r, c, mark)
+            }
 
-                    // Find subgrid boundary
-                    val rowSubgrid = if (row in 0..2) 0..2 else 3..5
-                    val colSubgrid = if (col in 0..2) 0..2 else 3..5
+            queue(row, col, nextMark)
 
-                    // Auto-cross other cells in same row within the subgrid column bounds
-                    for (c in colSubgrid) {
-                        if (c != col) {
-                            val currentC = currentState[Pair(row, c)]
-                            if (currentC != "O") {
-                                cellsToSave.add(
-                                    GridCellState("${caseId}_${row}_${c}", caseId, row, c, "X")
-                                )
-                            }
-                        }
-                    }
+            if (nextMark == "O") {
+                val rowGroup = when {
+                    isLocationSuspectCell(row, col) -> 0..2
+                    isLocationWeaponCell(row, col) -> 0..2
+                    isWeaponSuspectCell(row, col) -> 3..5
+                    else -> 0..-1
+                }
+                val colGroup = when {
+                    isLocationSuspectCell(row, col) -> 0..2
+                    isLocationWeaponCell(row, col) -> 3..5
+                    isWeaponSuspectCell(row, col) -> 0..2
+                    else -> 0..-1
+                }
 
-                    // Auto-cross other cells in same column within the subgrid row bounds
-                    for (r in rowSubgrid) {
-                        if (r != row) {
-                            val currentR = currentState[Pair(r, col)]
-                            if (currentR != "O") {
-                                cellsToSave.add(
-                                    GridCellState("${caseId}_${r}_${col}", caseId, r, col, "X")
-                                )
-                            }
-                        }
-                    }
-
-                    repository.saveGridCells(cellsToSave)
-                } else {
-                    // Regular "X" click
-                    val cellState = GridCellState(
-                        cellId = "${caseId}_${row}_${col}",
-                        caseId = caseId,
-                        row = row,
-                        col = col,
-                        mark = nextMark
-                    )
-                    repository.saveGridCell(cellState)
+                for (c in colGroup) {
+                    if (c != col && currentState[Pair(row, c)] != "O") queue(row, c, "X")
+                }
+                for (r in rowGroup) {
+                    if (r != row && currentState[Pair(r, col)] != "O") queue(r, col, "X")
                 }
             }
+
+            repository.saveGridCells(cellsToSave.values.toList())
         }
     }
 
@@ -181,21 +173,29 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         _accusationResult.value = AccusationResult.None
     }
 
+    fun chooseLiar(liar: String) {
+        _chosenLiar.value = liar
+        _accusationResult.value = AccusationResult.None
+    }
+
     fun makeAccusation() {
         val case = activeCase.value ?: return
         val suspect = _chosenSuspect.value
         val weapon = _chosenWeapon.value
         val location = _chosenLocation.value
+        val liar = _chosenLiar.value
 
-        if (suspect.isEmpty() || weapon.isEmpty() || location.isEmpty()) {
+        if (suspect.isEmpty() || weapon.isEmpty() || location.isEmpty() || (case.hasLiar && liar.isEmpty())) {
             _accusationResult.value = AccusationResult.Failure
             return
         }
 
-        if (suspect == case.solutionSuspect &&
+        val basicAccusationCorrect = suspect == case.solutionSuspect &&
             weapon == case.solutionWeapon &&
             location == case.solutionLocation
-        ) {
+        val liarCorrect = !case.hasLiar || liar == case.solutionLiar
+
+        if (basicAccusationCorrect && liarCorrect) {
             _accusationResult.value = AccusationResult.Success
             viewModelScope.launch {
                 repository.markCaseCompleted(case.id)
@@ -205,10 +205,20 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun saveNotes(notesText: String) {
+    fun toggleClueChecked(index: Int) {
         val caseId = _activeCaseId.value ?: return
         viewModelScope.launch {
-            repository.saveNotes(CaseNotes(caseId, notesText))
+            val nextChecked = checkedClues.value.toMutableSet().apply {
+                if (!add(index)) remove(index)
+            }
+            repository.saveCheckedClues(CaseNotes(caseId, nextChecked.sorted().joinToString(",")))
+        }
+    }
+
+    fun resetCheckedClues() {
+        val caseId = _activeCaseId.value ?: return
+        viewModelScope.launch {
+            repository.saveCheckedClues(CaseNotes(caseId, ""))
         }
     }
 
