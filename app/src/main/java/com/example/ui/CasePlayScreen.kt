@@ -357,12 +357,12 @@ fun LogicGridTab(
         row in 3..5 && col in 3..5
 
     @Composable
-    fun HeaderCell(header: String) {
+    fun HeaderCell(header: String, isWeaponGroup: Boolean) {
         Box(
             modifier = Modifier
                 .size(width = cellWidth, height = cellHeight)
                 .border(0.5.dp, Color(0x33B0BEC5))
-                .background(SlateCard),
+                .background(if (isWeaponGroup) Color(0x22388E3C) else Color(0x22FFB300)),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -383,6 +383,11 @@ fun LogicGridTab(
     @Composable
     fun RowHeaderCell(rowLabel: String, rowIndex: Int) {
         val isWeaponRow = rowIndex >= 3
+        val groupLabel = when (rowIndex) {
+            0 -> "LOC"
+            3 -> "WPN"
+            else -> ""
+        }
         Box(
             modifier = Modifier
                 .size(width = rowHeaderWidth, height = cellHeight)
@@ -390,17 +395,34 @@ fun LogicGridTab(
                 .background(if (isWeaponRow) Color(0x22388E3C) else Color(0x22FFB300)),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(
-                text = rowLabel,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = GridWhite,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 9.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
+            Row(
+                modifier = Modifier.padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (groupLabel.isNotEmpty()) {
+                    Text(
+                        text = groupLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MutedGrey,
+                        fontSize = 8.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(20.dp))
+                }
+                Text(
+                    text = rowLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = GridWhite,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 
@@ -533,15 +555,46 @@ fun LogicGridTab(
         ) {
             Row {
                 Box(
-                    modifier = Modifier
-                        .size(width = rowHeaderWidth, height = cellHeight)
+                    modifier = Modifier.size(width = rowHeaderWidth, height = 28.dp)
                         .border(0.5.dp, Color(0x33B0BEC5))
                         .background(SlateCard)
                 )
+                Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = cellWidth * 3, height = 28.dp)
+                            .border(0.5.dp, Color(0x33B0BEC5))
+                            .background(Color(0x22FFB300)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("SUSPECTS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = GridWhite, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(width = cellWidth * 3, height = 28.dp)
+                            .border(0.5.dp, Color(0x33B0BEC5))
+                            .background(Color(0x22388E3C)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("WEAPONS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = GridWhite, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
+                    }
+                }
+            }
+
+            Row {
+                Box(
+                    modifier = Modifier
+                        .size(width = rowHeaderWidth, height = cellHeight)
+                        .border(0.5.dp, Color(0x33B0BEC5))
+                        .background(SlateCard),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("GRID", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = NoirAmber)
+                }
 
                 Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
-                    columnHeaders.forEach { header ->
-                        HeaderCell(header = header)
+                    columnHeaders.forEachIndexed { index, header ->
+                        HeaderCell(header = header, isWeaponGroup = index >= 3)
                     }
                 }
             }
@@ -635,72 +688,6 @@ fun CastSectionCard(
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     color = NoirAmber
-                )
-            }
-
-            Divider(color = Color(0x33B0BEC5))
-
-            items.forEach { (name, description) ->
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = GridWhite,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SlateGrey,
-                        lineHeight = 18.sp
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun WitnessStatementsCard(case: Case) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(Icons.Default.Info, contentDescription = "Witness statements icon", tint = NoirAmber)
-                Text(
-                    text = "WITNESS STATEMENTS",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    color = NoirAmber
-                )
-            }
-
-            if (case.hasLiar) {
-                Text(
-                    text = "Exactly one witness may be lying. Use the statements with the physical clues.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = BloodRed,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-
-            Divider(color = Color(0x33B0BEC5))
-
-            case.statements.forEach { statement ->
-                Text(
-                    text = "${statement.speaker}: \"${statement.text}\"",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = SlateGrey,
-                    lineHeight = 18.sp
                 )
             }
         }
