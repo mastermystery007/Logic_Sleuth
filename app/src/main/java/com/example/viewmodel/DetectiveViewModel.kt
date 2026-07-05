@@ -127,9 +127,11 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
 
             queue(row, col, nextMark)
 
-            // The 6x6 board stores each relationship once: weapon/suspect, weapon/location,
-            // and location/suspect. Location/location cells are intentionally blocked.
-            // TODO: if the grid later adds duplicate mirrored cells, mirror updates there too.
+            // Grid layout:
+            // rows 0..2 = locations, rows 3..5 = weapons
+            // cols 0..2 = suspects, cols 3..5 = weapons
+            // Active blocks are Location × Suspect, Location × Weapon, and Weapon × Suspect.
+            // The bottom-right Weapon × Weapon block is disabled and never queued.
             if (nextMark == "O") {
                 val rowGroup = if (row in 0..2) 0..2 else 3..5
                 val colGroup = if (col in 0..2) 0..2 else 3..5
