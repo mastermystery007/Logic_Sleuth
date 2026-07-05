@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -615,40 +616,78 @@ fun LogicGridTab(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Text(
+            text = "Toggles: Unknown ➔ ✕ (Cross) ➔ ⬤ (Match)",
+            style = MaterialTheme.typography.labelSmall,
+            color = MutedGrey,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+    }
+}
+
+// Cast reference tab
+@Composable
+fun CastTab(case: Case) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        CastSectionCard(
+            title = "SUSPECTS",
+            icon = Icons.Default.Person,
+            items = case.suspects.map { suspect ->
+                suspect to (case.suspectDescriptions[suspect] ?: "")
+            }
+        )
+
+        CastSectionCard(
+            title = "WEAPONS",
+            icon = Icons.Default.Build,
+            items = case.weapons.map { weapon ->
+                weapon to (case.weaponDescriptions[weapon] ?: "")
+            }
+        )
+
+        CastSectionCard(
+            title = "LOCATIONS",
+            icon = Icons.Default.Place,
+            items = case.locations.map { location ->
+                location to (case.locationDescriptions[location] ?: "")
+            }
+        )
+
+        if (case.statements.isNotEmpty()) {
+            WitnessStatementsCard(case = case)
+        }
+    }
+}
+
+@Composable
+fun CastSectionCard(
+    title: String,
+    icon: ImageVector,
+    items: List<Pair<String, String>>
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Text(
-                text = "Toggles: Unknown ➔ ✕ (Cross) ➔ ⬤ (Match)",
-                style = MaterialTheme.typography.labelSmall,
-                color = MutedGrey,
-                fontStyle = FontStyle.Italic
-            )
-            Button(
-                onClick = onResetGrid,
-                colors = ButtonDefaults.buttonColors(containerColor = BloodRed.copy(alpha = 0.15f)),
-                border = BorderStroke(1.dp, BloodRed.copy(alpha = 0.5f)),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                modifier = Modifier.testTag("reset_grid_button")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Restart icons",
-                    tint = BloodRed,
-                    modifier = Modifier.size(14.dp)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
+                Icon(icon, contentDescription = "$title icon", tint = NoirAmber)
                 Text(
-                    text = "CLEAR GRID",
-                    color = BloodRed,
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
+                    color = NoirAmber
                 )
             }
         }
