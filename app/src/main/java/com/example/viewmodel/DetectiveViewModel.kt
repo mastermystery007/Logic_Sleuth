@@ -26,10 +26,6 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
     // List of all cases available
     val cases: List<Case> = repository.getCases()
 
-    // Selection filters for Dashboard
-    private val _difficultyFilter = MutableStateFlow("All")
-    val difficultyFilter: StateFlow<String> = _difficultyFilter.asStateFlow()
-
     // Set of complete case IDs
     val completedCaseIds: StateFlow<Set<Int>> = repository.completedCases
         .map { list -> list.map { it.caseId }.toSet() }
@@ -94,10 +90,6 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         _chosenLocation.value = ""
         _chosenLiar.value = ""
         _accusationResult.value = AccusationResult.None
-    }
-
-    fun setDifficultyFilter(filter: String) {
-        _difficultyFilter.value = filter
     }
 
     private fun isLocationSuspectCell(row: Int, col: Int): Boolean =

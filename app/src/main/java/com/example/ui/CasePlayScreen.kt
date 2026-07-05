@@ -1,6 +1,5 @@
 package com.example.ui
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,18 +11,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.Case
-import com.example.data.Statement
 import com.example.ui.theme.*
 import com.example.viewmodel.AccusationResult
 import com.example.viewmodel.DetectiveViewModel
@@ -48,7 +46,7 @@ fun CasePlayScreen(
     // Return early if no case selected
     val activeCase = case ?: return
 
-    var activeTab by remember { mutableStateOf("Grid") }
+    var activeTab by remember { mutableStateOf("Dossier") }
     var focusedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showExplanationDialog by remember { mutableStateOf(false) }
 
@@ -188,7 +186,7 @@ fun CasePlayScreen(
             }
 
             // Tab bar for gameplay modes
-            val tabs = listOf("Grid", "Case File", "Interrogations", "Accuse")
+            val tabs = listOf("Dossier", "Logic Grid", "Deduce")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -223,7 +221,7 @@ fun CasePlayScreen(
 
             // Tab Switcher Content
             when (activeTab) {
-                "Grid" -> {
+                "Logic Grid" -> {
                     LogicGridTab(
                         case = activeCase,
                         gridState = gridState,
@@ -235,17 +233,14 @@ fun CasePlayScreen(
                         onResetGrid = { viewModel.resetGrid() }
                     )
                 }
-                "Case File" -> {
-                    CaseFileTab(
+                "Dossier" -> {
+                    DossierTab(
                         case = activeCase,
                         checkedClues = checkedClues,
                         onToggleClue = { index -> viewModel.toggleClueChecked(index) }
                     )
                 }
-                "Interrogations" -> {
-                    InterrogationTab(case = activeCase)
-                }
-                "Accuse" -> {
+                "Deduce" -> {
                     AccusationTab(
                         case = activeCase,
                         viewModel = viewModel,
@@ -303,7 +298,10 @@ fun CasePlayScreen(
             },
             confirmButton = {
                 TextButton(
-                    onClick = { showExplanationDialog = false }
+                    onClick = {
+                        showExplanationDialog = false
+                        onNavigateBack()
+                    }
                 ) {
                     Text("CLOSE FILE", color = NoirAmber, fontFamily = FontFamily.Monospace)
                 }
@@ -325,12 +323,13 @@ fun LogicGridTab(
 ) {
     val columnGroupLabels = listOf("Suspects", "Weapons")
     val rowGroupLabels = listOf("Locations", "Weapons")
-    val columnHeaders = listOf("S1", "S2", "S3", "W1", "W2", "W3")
-    val rowHeaders = listOf("L1", "L2", "L3", "W1", "W2", "W3")
+    val columnHeaders = case.suspects + case.weapons
+    val rowHeaders = case.locations + case.weapons
     val horizontalScrollState = rememberScrollState()
-    val rowHeaderWidth = 84.dp
-    val cellSize = 44.dp
-    val columnGroupWidth = 132.dp
+    val rowHeaderWidth = 132.dp
+    val cellWidth = 104.dp
+    val cellHeight = 52.dp
+    val columnGroupWidth = 312.dp
     val disabledCellBackground = SlateCard.copy(alpha = 0.72f)
 
     fun isLocationSuspectCell(row: Int, col: Int): Boolean =
@@ -478,7 +477,7 @@ fun LogicGridTab(
             Row {
                 Box(
                     modifier = Modifier
-                        .size(width = rowHeaderWidth, height = cellSize)
+                        .size(width = rowHeaderWidth, height = cellHeight)
                         .border(0.5.dp, Color(0x33B0BEC5))
                         .background(SlateCard),
                     contentAlignment = Alignment.Center
@@ -498,7 +497,7 @@ fun LogicGridTab(
                         val isWeaponGroup = index >= 3
                         Box(
                             modifier = Modifier
-                                .size(cellSize)
+                                .size(width = cellWidth, height = cellHeight)
                                 .border(0.5.dp, Color(0x33B0BEC5))
                                 .background(if (isWeaponGroup) Color(0x22388E3C) else Color(0x22FFB300)),
                             contentAlignment = Alignment.Center
@@ -508,7 +507,11 @@ fun LogicGridTab(
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = GridWhite,
-                                fontFamily = FontFamily.Monospace
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 9.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -521,7 +524,7 @@ fun LogicGridTab(
                     val groupLabel = if (r == 0) rowGroupLabels[0] else if (r == 3) rowGroupLabels[1] else ""
                     Box(
                         modifier = Modifier
-                            .size(width = rowHeaderWidth, height = cellSize)
+                            .size(width = rowHeaderWidth, height = cellHeight)
                             .border(0.5.dp, Color(0x33B0BEC5))
                             .background(if (isWeaponRow) Color(0x22388E3C) else Color(0x22FFB300)),
                         contentAlignment = Alignment.CenterStart
@@ -548,7 +551,10 @@ fun LogicGridTab(
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = GridWhite,
-                                fontFamily = FontFamily.Monospace
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 9.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -561,7 +567,7 @@ fun LogicGridTab(
                             if (isDisabledCell(r, c)) {
                                 Box(
                                     modifier = Modifier
-                                        .size(cellSize)
+                                        .size(width = cellWidth, height = cellHeight)
                                         .border(0.5.dp, Color(0x33B0BEC5))
                                         .background(disabledCellBackground),
                                     contentAlignment = Alignment.Center
@@ -578,7 +584,7 @@ fun LogicGridTab(
                                 val currentMark = gridState[Pair(r, c)] ?: ""
                                 Box(
                                     modifier = Modifier
-                                        .size(cellSize)
+                                        .size(width = cellWidth, height = cellHeight)
                                         .border(
                                             width = if (isFocused) 1.5.dp else 0.5.dp,
                                             color = if (isFocused) NoirAmber else Color(0x33B0BEC5)
@@ -652,83 +658,12 @@ fun LogicGridTab(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "CASE INDEX",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = NoirAmber,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
-        ) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "SUSPECTS",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = NoirAmber
-                    )
-                    case.suspects.forEachIndexed { idx, suspect ->
-                        Text(
-                            text = "S${idx + 1} = $suspect",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SlateGrey
-                        )
-                    }
-                }
-
-                Divider(color = Color(0x19B0BEC5))
-
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "WEAPONS",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = NoirAmber
-                    )
-                    case.weapons.forEachIndexed { idx, weapon ->
-                        Text(
-                            text = "W${idx + 1} = $weapon",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SlateGrey
-                        )
-                    }
-                }
-
-                Divider(color = Color(0x19B0BEC5))
-
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "LOCATIONS",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = NoirAmber
-                    )
-                    case.locations.forEachIndexed { idx, location ->
-                        Text(
-                            text = "L${idx + 1} = $location",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SlateGrey
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
-// Case Files (Backstory & Clues) Tab Component
+// Dossier tab
 @Composable
-fun CaseFileTab(
+fun DossierTab(
     case: Case,
     checkedClues: Set<Int>,
     onToggleClue: (Int) -> Unit
@@ -823,142 +758,6 @@ fun CaseFileTab(
                             textDecoration = if (isChecked) TextDecoration.LineThrough else TextDecoration.None,
                             modifier = Modifier.padding(top = 12.dp)
                         )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Interrogation transcripts tab
-@Composable
-fun InterrogationTab(
-    case: Case
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        if (case.hasLiar) {
-            // Police caution warning element
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE65100))
-                    .border(2.dp, Color(0xFFFFB300), RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "Warning caution tape",
-                        tint = Color.White
-                    )
-                    Column {
-                        Text(
-                            text = "CRITICAL TWIST ALERT",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "Exactly ONE of the suspects below is lying. The other two are telling the absolute truth. Spot the logical contradiction to expose the murderer!",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-            }
-        }
-
-        Text(
-            text = "TRANSCRIPTS: INTERROGATIONS",
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
-            color = MutedGrey
-        )
-
-        if (case.statements.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No statements recorded. Review the evidence directly.",
-                    color = MutedGrey,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
-        } else {
-            case.statements.forEach { statement ->
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(NoirAmber.copy(alpha = 0.2f))
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Avatar icon",
-                                    tint = NoirAmber,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = statement.speaker.uppercase(),
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = GridWhite
-                                )
-                                Text(
-                                    text = case.suspectDescriptions[statement.speaker] ?: "No catalog description available.",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MutedGrey
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(SlateCard)
-                                .padding(12.dp)
-                        ) {
-                            Text(
-                                text = "“${statement.text}”",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = GridWhite,
-                                fontStyle = FontStyle.Italic,
-                                lineHeight = 18.sp
-                            )
-                        }
                     }
                 }
             }
