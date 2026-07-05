@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.Case
@@ -320,8 +321,144 @@ fun LogicGridTab(
     onCellClick: (row: Int, col: Int) -> Unit,
     onResetGrid: () -> Unit
 ) {
-    val rowHeaders = listOf("W1", "W2", "W3", "L1", "L2", "L3")
-    val colHeaders = listOf("S1", "S2", "S3", "L1", "L2", "L3")
+    val horizontalScrollState = rememberScrollState()
+    val rowHeaderWidth = 140.dp
+    val cellWidth = 120.dp
+    val cellHeight = 56.dp
+    val disabledCellBackground = MutedGrey.copy(alpha = 0.12f)
+
+    val columnHeaders = case.suspects + case.weapons
+    val rowHeaders = case.locations + case.weapons
+
+    fun isLocationSuspectCell(row: Int, col: Int): Boolean =
+        row in 0..2 && col in 0..2
+
+    fun isLocationWeaponCell(row: Int, col: Int): Boolean =
+        row in 0..2 && col in 3..5
+
+    fun isWeaponSuspectCell(row: Int, col: Int): Boolean =
+        row in 3..5 && col in 0..2
+
+    fun isPlayableCell(row: Int, col: Int): Boolean =
+        isLocationSuspectCell(row, col) ||
+            isLocationWeaponCell(row, col) ||
+            isWeaponSuspectCell(row, col)
+
+    fun isDisabledCell(row: Int, col: Int): Boolean =
+        row in 3..5 && col in 3..5
+
+    @Composable
+    fun HeaderCell(header: String, isWeaponGroup: Boolean) {
+        Box(
+            modifier = Modifier
+                .size(width = cellWidth, height = cellHeight)
+                .border(0.5.dp, Color(0x33B0BEC5))
+                .background(if (isWeaponGroup) Color(0x22388E3C) else Color(0x22FFB300)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = header,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = GridWhite,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 9.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 6.dp)
+            )
+        }
+    }
+
+    @Composable
+    fun RowHeaderCell(rowLabel: String, rowIndex: Int) {
+        val isWeaponRow = rowIndex >= 3
+        val groupLabel = when (rowIndex) {
+            0 -> "LOC"
+            3 -> "WPN"
+            else -> ""
+        }
+        Box(
+            modifier = Modifier
+                .size(width = rowHeaderWidth, height = cellHeight)
+                .border(0.5.dp, Color(0x33B0BEC5))
+                .background(if (isWeaponRow) Color(0x22388E3C) else Color(0x22FFB300)),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (groupLabel.isNotEmpty()) {
+                    Text(
+                        text = groupLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MutedGrey,
+                        fontSize = 8.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(20.dp))
+                }
+                Text(
+                    text = rowLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = GridWhite,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DisabledCell() {
+        Box(
+            modifier = Modifier
+                .size(width = cellWidth, height = cellHeight)
+                .border(0.5.dp, Color(0x33B0BEC5))
+                .background(disabledCellBackground)
+                .testTag("disabled_grid_cell"),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "–",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MutedGrey.copy(alpha = 0.45f),
+                fontFamily = FontFamily.Monospace
+            )
+        }
+    }
+
+    @Composable
+    fun ActiveGridCell(row: Int, col: Int) {
+        val isFocused = focusedCell?.let { it.first == row && it.second == col } == true
+        val currentMark = gridState[Pair(row, col)] ?: ""
+        Box(
+            modifier = Modifier
+                .size(width = cellWidth, height = cellHeight)
+                .border(
+                    width = if (isFocused) 1.5.dp else 0.5.dp,
+                    color = if (isFocused) NoirAmber else Color(0x33B0BEC5)
+                )
+                .background(if (isFocused) SelectedBox else CharcoalSurface)
+                .clickable(enabled = isPlayableCell(row, col)) { onCellClick(row, col) }
+                .testTag("grid_cell_${row}_${col}"),
+            contentAlignment = Alignment.Center
+        ) {
+            when (currentMark) {
+                "X" -> Text("✕", color = BloodRed, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                "O" -> Text("⬤", color = ClueGreen, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Focus Cell Inspector Panel
@@ -365,14 +502,14 @@ fun LogicGridTab(
                         val rowIdx = focusedCell.first
                         val colIdx = focusedCell.second
                         val rowLabel = if (rowIdx in 0..2) {
-                            "Location: " + case.locations[rowIdx]
+                            "Location: ${case.locations[rowIdx]}"
                         } else {
-                            "Weapon: " + case.weapons[rowIdx - 3]
+                            "Weapon: ${case.weapons[rowIdx - 3]}"
                         }
                         val colLabel = if (colIdx in 0..2) {
-                            "Suspect: " + case.suspects[colIdx]
+                            "Suspect: ${case.suspects[colIdx]}"
                         } else {
-                            "Weapon: " + case.weapons[colIdx - 3]
+                            "Weapon: ${case.weapons[colIdx - 3]}"
                         }
                         val currentMark = gridState[focusedCell] ?: ""
                         Text(
@@ -407,50 +544,30 @@ fun LogicGridTab(
                 .clip(RoundedCornerShape(8.dp))
                 .background(CharcoalSurface)
         ) {
-            Column(
-                modifier = Modifier
-                    .border(2.dp, Color(0x33B0BEC5), RoundedCornerShape(8.dp))
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(CharcoalSurface)
-            ) {
-                // Header Row (Top label spaces + headers)
-                Row {
-                    // Empty corner
+            Row {
+                Box(
+                    modifier = Modifier.size(width = rowHeaderWidth, height = 28.dp)
+                        .border(0.5.dp, Color(0x33B0BEC5))
+                        .background(SlateCard)
+                )
+                Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
                     Box(
                         modifier = Modifier
-                            .size(width = 60.dp, height = 44.dp)
+                            .size(width = cellWidth * 3, height = 28.dp)
                             .border(0.5.dp, Color(0x33B0BEC5))
-                            .background(SlateCard),
+                            .background(Color(0x22FFB300)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "GRID",
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp,
-                            color = NoirAmber
-                        )
+                        Text("SUSPECTS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = GridWhite, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
                     }
-
-                    // Column headers representing Suspects (S1-S3) and Locations (L1-L3)
-                    colHeaders.forEachIndexed { index, header ->
-                        val isLocationGroup = index >= 3
-                        Box(
-                            modifier = Modifier
-                                .size(width = columnGroupWidth, height = 28.dp)
-                                .border(0.5.dp, Color(0x33B0BEC5))
-                                .background(if (isWeaponGroup) Color(0x22388E3C) else Color(0x22FFB300)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = label.uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = GridWhite,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 10.sp
-                            )
-                        }
+                    Box(
+                        modifier = Modifier
+                            .size(width = cellWidth * 3, height = 28.dp)
+                            .border(0.5.dp, Color(0x33B0BEC5))
+                            .background(Color(0x22388E3C)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("WEAPONS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = GridWhite, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
                     }
                 }
             }
@@ -463,137 +580,26 @@ fun LogicGridTab(
                         .background(SlateCard),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "ROWS",
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp,
-                        color = MutedGrey
-                    )
+                    Text("GRID", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = NoirAmber)
                 }
-                Row(
-                    modifier = Modifier.horizontalScroll(horizontalScrollState, reverseScrolling = false)
-                ) {
+
+                Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
                     columnHeaders.forEachIndexed { index, header ->
-                        val isWeaponGroup = index >= 3
-                        Box(
-                            modifier = Modifier
-                                .size(width = cellWidth, height = cellHeight)
-                                .border(0.5.dp, Color(0x33B0BEC5))
-                                .background(if (isWeaponGroup) Color(0x22388E3C) else Color(0x22FFB300)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = header,
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = GridWhite,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 9.sp,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        HeaderCell(header = header, isWeaponGroup = index >= 3)
                     }
                 }
             }
 
-            for (r in 0..5) {
+            rowHeaders.forEachIndexed { r, rowLabel ->
                 Row {
-                    val isWeaponRow = r >= 3
-                    val groupLabel = if (r == 0) rowGroupLabels[0] else if (r == 3) rowGroupLabels[1] else ""
-                    Box(
-                        modifier = Modifier
-                            .size(width = rowHeaderWidth, height = cellHeight)
-                            .border(0.5.dp, Color(0x33B0BEC5))
-                            .background(if (isWeaponRow) Color(0x22388E3C) else Color(0x22FFB300)),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if (groupLabel.isNotEmpty()) {
-                                Text(
-                                    text = groupLabel.take(3).uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MutedGrey,
-                                    fontSize = 8.sp,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            } else {
-                                Spacer(modifier = Modifier.width(20.dp))
-                            }
-                            Text(
-                                text = rowHeaders[r],
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = GridWhite,
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 9.sp,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
+                    RowHeaderCell(rowLabel = rowLabel, rowIndex = r)
 
-                    Row(
-                        modifier = Modifier.horizontalScroll(horizontalScrollState, reverseScrolling = false)
-                    ) {
-                        for (c in 0..5) {
-                            val isFocused = focusedCell != null && focusedCell.first == r && focusedCell.second == c
+                    Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
+                        columnHeaders.forEachIndexed { c, _ ->
                             if (isDisabledCell(r, c)) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(width = cellWidth, height = cellHeight)
-                                        .border(0.5.dp, Color(0x33B0BEC5))
-                                        .background(disabledCellBackground),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "–",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MutedGrey.copy(alpha = 0.45f),
-                                        fontFamily = FontFamily.Monospace
-                                    )
-                                }
+                                DisabledCell()
                             } else {
-                                val currentMark = gridState[Pair(r, c)] ?: ""
-                                Box(
-                                    modifier = Modifier
-                                        .size(width = cellWidth, height = cellHeight)
-                                        .border(
-                                            width = if (isFocused) 1.5.dp else 0.5.dp,
-                                            color = if (isFocused) NoirAmber else Color(0x33B0BEC5)
-                                        )
-                                        .background(if (isFocused) SelectedBox else CharcoalSurface)
-                                        .clickable(enabled = isPlayableCell(r, c)) { onCellClick(r, c) }
-                                        .testTag("grid_cell_${r}_${c}"),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    when (currentMark) {
-                                        "X" -> {
-                                            Text(
-                                                text = "✕",
-                                                color = BloodRed,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 18.sp
-                                            )
-                                        }
-                                        "O" -> {
-                                            Text(
-                                                text = "⬤",
-                                                color = ClueGreen,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 16.sp
-                                            )
-                                        }
-                                    }
-                                }
+                                ActiveGridCell(row = r, col = c)
                             }
                         }
                     }
@@ -636,85 +642,6 @@ fun LogicGridTab(
                     fontSize = 10.sp,
                     fontFamily = FontFamily.Monospace
                 )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Legend keys cards
-        Text(
-            text = "CASE INDEX",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color = NoirAmber,
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
-        ) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Suspect list
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "👤 SUSPECT KEY:",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = NoirAmber
-                    )
-                    case.suspects.forEachIndexed { idx, s ->
-                        val code = "S${idx + 1}"
-                        Text(
-                            text = "[$code] $s — ${case.suspectDescriptions[s] ?: ""}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SlateGrey
-                        )
-                    }
-                }
-
-                Divider(color = Color(0x19B0BEC5))
-
-                // Weapon list
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "🔪 WEAPON KEY:",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = NoirAmber
-                    )
-                    case.weapons.forEachIndexed { idx, w ->
-                        val code = "W${idx + 1}"
-                        Text(
-                            text = "[$code] $w — ${case.weaponDescriptions[w] ?: ""}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SlateGrey
-                        )
-                    }
-                }
-
-                Divider(color = Color(0x19B0BEC5))
-
-                // Location list
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "🏛️ LOCATION KEY:",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = NoirAmber
-                    )
-                    case.locations.forEachIndexed { idx, l ->
-                        val code = "L${idx + 1}"
-                        Text(
-                            text = "[$code] $l — ${case.locationDescriptions[l] ?: ""}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = SlateGrey
-                        )
-                    }
-                }
             }
         }
     }
