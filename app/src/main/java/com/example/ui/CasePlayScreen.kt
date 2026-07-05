@@ -21,6 +21,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ads.RewardedAdManager
+import com.example.ads.RewardedAdPurpose
 import com.example.data.Case
 import com.example.ui.theme.*
 import com.example.viewmodel.AccusationResult
@@ -31,6 +33,7 @@ import com.example.viewmodel.DetectiveViewModel
 fun CasePlayScreen(
     viewModel: DetectiveViewModel,
     onNavigateBack: () -> Unit,
+    rewardedAdManager: RewardedAdManager,
     modifier: Modifier = Modifier
 ) {
     val case by viewModel.activeCase.collectAsState()
@@ -46,13 +49,15 @@ fun CasePlayScreen(
     // Return early if no case selected
     val activeCase = case ?: return
 
-    var activeTab by remember { mutableStateOf("Dossier") }
+    var activeTab by remember { mutableStateOf("Cast") }
     var focusedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showExplanationDialog by remember { mutableStateOf(false) }
 
 
-    if (accusationResult == AccusationResult.Success) {
-        showExplanationDialog = true
+    LaunchedEffect(accusationResult) {
+        if (accusationResult == AccusationResult.Success) {
+            showExplanationDialog = true
+        }
     }
 
     Scaffold(
@@ -186,7 +191,7 @@ fun CasePlayScreen(
             }
 
             // Tab bar for gameplay modes
-            val tabs = listOf("Dossier", "Logic Grid", "Deduce")
+            val tabs = listOf("Cast", "Dossier", "Logic Grid", "Deduce")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -221,6 +226,9 @@ fun CasePlayScreen(
 
             // Tab Switcher Content
             when (activeTab) {
+                "Cast" -> {
+                    CastTab(case = activeCase)
+                }
                 "Logic Grid" -> {
                     LogicGridTab(
                         case = activeCase,
@@ -229,8 +237,7 @@ fun CasePlayScreen(
                         onCellClick = { r, c ->
                             focusedCell = Pair(r, c)
                             viewModel.toggleGridCell(r, c)
-                        },
-                        onResetGrid = { viewModel.resetGrid() }
+                        }
                     )
                 }
                 "Dossier" -> {
@@ -250,6 +257,7 @@ fun CasePlayScreen(
                         chosenLiar = chosenLiar,
                         accusationResult = accusationResult,
                         isCaseCompleted = isCompleted,
+                        rewardedAdManager = rewardedAdManager,
                         onShowExplanation = { showExplanationDialog = true }
                     )
                 }
@@ -300,6 +308,7 @@ fun CasePlayScreen(
                 TextButton(
                     onClick = {
                         showExplanationDialog = false
+                        viewModel.selectCase(null)
                         onNavigateBack()
                     }
                 ) {
@@ -318,8 +327,7 @@ fun LogicGridTab(
     case: Case,
     gridState: Map<Pair<Int, Int>, String>,
     focusedCell: Pair<Int, Int>?,
-    onCellClick: (row: Int, col: Int) -> Unit,
-    onResetGrid: () -> Unit
+    onCellClick: (row: Int, col: Int) -> Unit
 ) {
     val horizontalScrollState = rememberScrollState()
     val rowHeaderWidth = 140.dp
@@ -720,6 +728,24 @@ fun DossierTab(
 
                 Divider(color = Color(0x33B0BEC5))
 
+                if (case.hasLiar) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(BloodRed.copy(alpha = 0.12f))
+                            .border(1.dp, BloodRed.copy(alpha = 0.45f), RoundedCornerShape(8.dp))
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = "This file includes one false witness statement. Check the Cast tab before deducing.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = BloodRed,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
                 case.clues.forEachIndexed { index, clue ->
                     val isChecked = checkedClues.contains(index)
                     Row(
@@ -751,55 +777,6 @@ fun DossierTab(
     }
 }
 
-// Interrogation transcripts tab
-@Composable
-fun InterrogationTab(
-    case: Case
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        if (case.hasLiar) {
-            // Police caution warning element
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFE65100))
-                    .border(2.dp, Color(0xFFFFB300), RoundedCornerShape(8.dp))
-                    .padding(12.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "Warning caution tape",
-                        tint = Color.White
-                    )
-                    Column {
-                        Text(
-                            text = "CRITICAL TWIST ALERT",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace,
-                            color = Color.White
-                        )
-                        Text(
-                            text = "Exactly ONE of the suspects below is lying. The other two are telling the absolute truth. Spot the logical contradiction to expose the murderer!",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
 // Accusation/Charge suite Tab Component
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -812,12 +789,14 @@ fun AccusationTab(
     chosenLiar: String,
     accusationResult: AccusationResult,
     isCaseCompleted: Boolean,
+    rewardedAdManager: RewardedAdManager,
     onShowExplanation: () -> Unit
 ) {
     var isSuspectExpanded by remember { mutableStateOf(false) }
     var isWeaponExpanded by remember { mutableStateOf(false) }
     var isLocationExpanded by remember { mutableStateOf(false) }
     var isLiarExpanded by remember { mutableStateOf(false) }
+    var showRevealDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -1074,24 +1053,49 @@ fun AccusationTab(
                          }
                      }
                      is AccusationResult.Failure -> {
-                         Box(
-                             modifier = Modifier
-                                 .fillMaxWidth()
-                                 .clip(RoundedCornerShape(8.dp))
-                                 .background(BloodRed.copy(alpha = 0.15f))
-                                 .border(1.dp, BloodRed, RoundedCornerShape(8.dp))
-                                 .padding(12.dp)
-                         ) {
-                             Row(
-                                 verticalAlignment = Alignment.CenterVertically,
-                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
+                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                             Box(
+                                 modifier = Modifier
+                                     .fillMaxWidth()
+                                     .clip(RoundedCornerShape(8.dp))
+                                     .background(BloodRed.copy(alpha = 0.15f))
+                                     .border(1.dp, BloodRed, RoundedCornerShape(8.dp))
+                                     .padding(12.dp)
                              ) {
-                                 Icon(Icons.Default.Cancel, contentDescription = "Failure cross icon", tint = BloodRed)
+                                 Row(
+                                     verticalAlignment = Alignment.CenterVertically,
+                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                 ) {
+                                     Icon(Icons.Default.Cancel, contentDescription = "Failure cross icon", tint = BloodRed)
+                                     Text(
+                                         text = "ACCUSATION NOT PROVEN. That combination does not match the clues. Keep searching the grid!",
+                                         color = BloodRed,
+                                         style = MaterialTheme.typography.bodySmall,
+                                         fontWeight = FontWeight.Bold
+                                     )
+                                 }
+                             }
+
+                             Button(
+                                 onClick = {
+                                     rewardedAdManager.showRewardedAd(
+                                         purpose = RewardedAdPurpose.REVEAL_SOLUTION,
+                                         onRewardEarned = { showRevealDialog = true }
+                                     )
+                                 },
+                                 colors = ButtonDefaults.buttonColors(containerColor = NoirAmber),
+                                 modifier = Modifier
+                                     .fillMaxWidth()
+                                     .testTag("reveal_solution_button"),
+                                 shape = RoundedCornerShape(8.dp)
+                             ) {
+                                 Icon(Icons.Default.Visibility, contentDescription = "Reveal solution icon", tint = Color.Black)
+                                 Spacer(modifier = Modifier.width(8.dp))
                                  Text(
-                                     text = "ACCUSATION NOT PROVEN. That combination does not match the clues. Keep searching the grid!",
-                                     color = BloodRed,
-                                     style = MaterialTheme.typography.bodySmall,
-                                     fontWeight = FontWeight.Bold
+                                     text = "WATCH AD TO REVEAL SOLUTION",
+                                     color = Color.Black,
+                                     fontWeight = FontWeight.Bold,
+                                     fontFamily = FontFamily.Monospace
                                  )
                              }
                          }
@@ -1104,7 +1108,12 @@ fun AccusationTab(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
-                        onClick = { viewModel.makeAccusation() },
+                        onClick = {
+                            rewardedAdManager.showRewardedAd(
+                                purpose = RewardedAdPurpose.CHECK_ANSWER,
+                                onRewardEarned = { viewModel.makeAccusation() }
+                            )
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = BloodRed),
                         modifier = Modifier
                             .weight(1f)
@@ -1114,7 +1123,7 @@ fun AccusationTab(
                     ) {
                         Icon(Icons.Default.Gavel, contentDescription = "Gavel symbol", tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("MAKE ACCUSATION", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text("WATCH AD & CHECK ANSWER", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     }
 
                     if (isCaseCompleted) {
@@ -1132,5 +1141,42 @@ fun AccusationTab(
                 }
             }
         }
+    }
+
+    if (showRevealDialog) {
+        AlertDialog(
+            onDismissRequest = { showRevealDialog = false },
+            title = {
+                Text(
+                    text = "SOLUTION REVEALED",
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = NoirAmber
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Correct suspect: ${case.solutionSuspect}", color = GridWhite, fontWeight = FontWeight.Bold)
+                    Text("Correct weapon: ${case.solutionWeapon}", color = GridWhite, fontWeight = FontWeight.Bold)
+                    Text("Correct location: ${case.solutionLocation}", color = GridWhite, fontWeight = FontWeight.Bold)
+                    if (case.hasLiar && case.solutionLiar != null) {
+                        Text("Correct liar: ${case.solutionLiar}", color = GridWhite, fontWeight = FontWeight.Bold)
+                    }
+                    Divider(color = Color(0x33B0BEC5))
+                    Text(
+                        text = case.murderExplanation,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SlateGrey
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showRevealDialog = false }) {
+                    Text("CLOSE", color = NoirAmber, fontFamily = FontFamily.Monospace)
+                }
+            },
+            containerColor = CharcoalSurface,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 }
