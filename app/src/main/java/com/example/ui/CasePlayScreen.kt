@@ -694,6 +694,53 @@ fun CastSectionCard(
     }
 }
 
+@Composable
+fun WitnessStatementsCard(case: Case) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Default.Info, contentDescription = "Witness statements icon", tint = NoirAmber)
+                Text(
+                    text = "WITNESS STATEMENTS",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = NoirAmber
+                )
+            }
+
+            if (case.hasLiar) {
+                Text(
+                    text = "Exactly one witness may be lying. Use the statements with the physical clues.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = BloodRed,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Divider(color = Color(0x33B0BEC5))
+
+            case.statements.forEach { statement ->
+                Text(
+                    text = "${statement.speaker}: \"${statement.text}\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SlateGrey,
+                    lineHeight = 18.sp
+                )
+            }
+        }
+    }
+}
+
 // Dossier tab
 @Composable
 fun DossierTab(
