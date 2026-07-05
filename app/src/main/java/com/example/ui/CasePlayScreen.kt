@@ -238,8 +238,7 @@ fun CasePlayScreen(
                         onCellClick = { r, c ->
                             focusedCell = Pair(r, c)
                             viewModel.toggleGridCell(r, c)
-                        },
-                        onResetGrid = { viewModel.resetGrid() }
+                        }
                     )
                 }
                 "Dossier" -> {
@@ -329,16 +328,12 @@ fun LogicGridTab(
     case: Case,
     gridState: Map<Pair<Int, Int>, String>,
     focusedCell: Pair<Int, Int>?,
-    onCellClick: (row: Int, col: Int) -> Unit,
-    onResetGrid: () -> Unit
+    onCellClick: (row: Int, col: Int) -> Unit
 ) {
-    var fitToScreen by remember { mutableStateOf(false) }
     val horizontalScrollState = rememberScrollState()
-    val rowHeaderWidth = if (fitToScreen) 92.dp else 140.dp
-    val cellWidth = if (fitToScreen) 52.dp else 120.dp
-    val cellHeight = if (fitToScreen) 48.dp else 56.dp
-    val headerFontSize = if (fitToScreen) 7.sp else 9.sp
-    val markFontSize = if (fitToScreen) 15.sp else 18.sp
+    val rowHeaderWidth = 140.dp
+    val cellWidth = 120.dp
+    val cellHeight = 56.dp
     val disabledCellBackground = MutedGrey.copy(alpha = 0.12f)
 
     val columnHeaders = case.suspects + case.weapons
@@ -362,12 +357,12 @@ fun LogicGridTab(
         row in 3..5 && col in 3..5
 
     @Composable
-    fun HeaderCell(header: String) {
+    fun HeaderCell(header: String, isWeaponGroup: Boolean) {
         Box(
             modifier = Modifier
                 .size(width = cellWidth, height = cellHeight)
                 .border(0.5.dp, Color(0x33B0BEC5))
-                .background(SlateCard),
+                .background(if (isWeaponGroup) Color(0x22388E3C) else Color(0x22FFB300)),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -376,7 +371,7 @@ fun LogicGridTab(
                 fontWeight = FontWeight.Bold,
                 color = GridWhite,
                 fontFamily = FontFamily.Monospace,
-                fontSize = headerFontSize,
+                fontSize = 9.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
@@ -388,6 +383,11 @@ fun LogicGridTab(
     @Composable
     fun RowHeaderCell(rowLabel: String, rowIndex: Int) {
         val isWeaponRow = rowIndex >= 3
+        val groupLabel = when (rowIndex) {
+            0 -> "LOC"
+            3 -> "WPN"
+            else -> ""
+        }
         Box(
             modifier = Modifier
                 .size(width = rowHeaderWidth, height = cellHeight)
@@ -395,17 +395,34 @@ fun LogicGridTab(
                 .background(if (isWeaponRow) Color(0x22388E3C) else Color(0x22FFB300)),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(
-                text = rowLabel,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = GridWhite,
-                fontFamily = FontFamily.Monospace,
-                fontSize = headerFontSize,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
+            Row(
+                modifier = Modifier.padding(horizontal = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (groupLabel.isNotEmpty()) {
+                    Text(
+                        text = groupLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MutedGrey,
+                        fontSize = 8.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(20.dp))
+                }
+                Text(
+                    text = rowLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = GridWhite,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 9.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 
@@ -446,8 +463,8 @@ fun LogicGridTab(
             contentAlignment = Alignment.Center
         ) {
             when (currentMark) {
-                "X" -> Text("✕", color = BloodRed, fontWeight = FontWeight.Bold, fontSize = markFontSize)
-                "O" -> Text("⬤", color = ClueGreen, fontWeight = FontWeight.Bold, fontSize = markFontSize)
+                "X" -> Text("✕", color = BloodRed, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                "O" -> Text("⬤", color = ClueGreen, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
     }
@@ -538,15 +555,46 @@ fun LogicGridTab(
         ) {
             Row {
                 Box(
-                    modifier = Modifier
-                        .size(width = rowHeaderWidth, height = cellHeight)
+                    modifier = Modifier.size(width = rowHeaderWidth, height = 28.dp)
                         .border(0.5.dp, Color(0x33B0BEC5))
                         .background(SlateCard)
                 )
+                Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
+                    Box(
+                        modifier = Modifier
+                            .size(width = cellWidth * 3, height = 28.dp)
+                            .border(0.5.dp, Color(0x33B0BEC5))
+                            .background(Color(0x22FFB300)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("SUSPECTS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = GridWhite, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(width = cellWidth * 3, height = 28.dp)
+                            .border(0.5.dp, Color(0x33B0BEC5))
+                            .background(Color(0x22388E3C)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("WEAPONS", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = GridWhite, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
+                    }
+                }
+            }
+
+            Row {
+                Box(
+                    modifier = Modifier
+                        .size(width = rowHeaderWidth, height = cellHeight)
+                        .border(0.5.dp, Color(0x33B0BEC5))
+                        .background(SlateCard),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("GRID", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = NoirAmber)
+                }
 
                 Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
-                    columnHeaders.forEach { header ->
-                        HeaderCell(header = header)
+                    columnHeaders.forEachIndexed { index, header ->
+                        HeaderCell(header = header, isWeaponGroup = index >= 3)
                     }
                 }
             }
@@ -569,53 +617,12 @@ fun LogicGridTab(
         }
 
         Text(
-            text = "Toggles: Unknown ➔ ✕ ➔ ⬤",
+            text = "Toggles: Unknown ➔ ✕ (Cross) ➔ ⬤ (Match)",
             style = MaterialTheme.typography.labelSmall,
             color = MutedGrey,
             fontStyle = FontStyle.Italic,
             modifier = Modifier.padding(vertical = 4.dp)
         )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            OutlinedButton(
-                onClick = { fitToScreen = !fitToScreen },
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("toggle_grid_view_button"),
-                border = BorderStroke(1.dp, NoirAmber.copy(alpha = 0.6f)),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
-            ) {
-                Text(
-                    text = if (fitToScreen) "LARGE VIEW" else "FIT TO SCREEN",
-                    color = NoirAmber,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
-
-            OutlinedButton(
-                onClick = onResetGrid,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("reset_grid_button"),
-                border = BorderStroke(1.dp, BloodRed.copy(alpha = 0.6f)),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
-            ) {
-                Text(
-                    text = "CLEAR GRID",
-                    color = BloodRed,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
-        }
     }
 }
 
@@ -682,25 +689,6 @@ fun CastSectionCard(
                     fontWeight = FontWeight.Bold,
                     color = NoirAmber
                 )
-            }
-
-            Divider(color = Color(0x33B0BEC5))
-
-            items.forEach { (name, description) ->
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = GridWhite,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = SlateGrey,
-                        lineHeight = 18.sp
-                    )
-                }
             }
         }
     }
@@ -1190,7 +1178,7 @@ fun AccusationTab(
                                  Icon(Icons.Default.Visibility, contentDescription = "Reveal solution icon", tint = Color.Black)
                                  Spacer(modifier = Modifier.width(8.dp))
                                  Text(
-                                     text = "WATCH AD TO SEE CORRECT ANSWER",
+                                     text = "WATCH AD TO REVEAL SOLUTION",
                                      color = Color.Black,
                                      fontWeight = FontWeight.Bold,
                                      fontFamily = FontFamily.Monospace
@@ -1221,7 +1209,7 @@ fun AccusationTab(
                     ) {
                         Icon(Icons.Default.Gavel, contentDescription = "Gavel symbol", tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("WATCH AD TO CHECK ANSWER", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text("WATCH AD & CHECK ANSWER", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     }
 
                     if (isCaseCompleted) {
