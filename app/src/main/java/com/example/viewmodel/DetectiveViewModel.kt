@@ -26,10 +26,6 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
     // List of all cases available
     val cases: List<Case> = repository.getCases()
 
-    // Selection filters for Dashboard
-    private val _difficultyFilter = MutableStateFlow("All")
-    val difficultyFilter: StateFlow<String> = _difficultyFilter.asStateFlow()
-
     // Set of complete case IDs
     val completedCaseIds: StateFlow<Set<Int>> = repository.completedCases
         .map { list -> list.map { it.caseId }.toSet() }
@@ -96,11 +92,21 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         _accusationResult.value = AccusationResult.None
     }
 
-    fun setDifficultyFilter(filter: String) {
-        _difficultyFilter.value = filter
-    }
+    private fun isLocationSuspectCell(row: Int, col: Int): Boolean =
+        row in 0..2 && col in 0..2
 
-    // Grid Cell Selection: empty "" -> "X" -> "O" -> empty ""
+    private fun isLocationWeaponCell(row: Int, col: Int): Boolean =
+        row in 0..2 && col in 3..5
+
+    private fun isWeaponSuspectCell(row: Int, col: Int): Boolean =
+        row in 3..5 && col in 0..2
+
+    private fun isPlayableCell(row: Int, col: Int): Boolean =
+        isLocationSuspectCell(row, col) ||
+            isLocationWeaponCell(row, col) ||
+            isWeaponSuspectCell(row, col)
+
+    // Grid Cell Selection: unknown "" -> "X" -> "O" -> unknown ""
     fun toggleGridCell(row: Int, col: Int) {
         val caseId = _activeCaseId.value ?: return
         if (row !in 0..5 || col !in 0..5 || (row >= 3 && col >= 3)) return
