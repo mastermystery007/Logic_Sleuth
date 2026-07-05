@@ -109,7 +109,7 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
     // Grid Cell Selection: unknown "" -> "X" -> "O" -> unknown ""
     fun toggleGridCell(row: Int, col: Int) {
         val caseId = _activeCaseId.value ?: return
-        if (!isPlayableCell(row, col)) return
+        if (row !in 0..5 || col !in 0..5 || (row >= 3 && col >= 3)) return
 
         viewModelScope.launch {
             val currentState = activeGrid.value
@@ -121,25 +121,18 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
             val cellsToSave = linkedMapOf<Pair<Int, Int>, GridCellState>()
 
             fun queue(r: Int, c: Int, mark: String) {
-                if (!isPlayableCell(r, c)) return
+                if (r !in 0..5 || c !in 0..5 || (r >= 3 && c >= 3)) return
                 cellsToSave[Pair(r, c)] = GridCellState("${caseId}_${r}_${c}", caseId, r, c, mark)
             }
 
             queue(row, col, nextMark)
 
+            // The 6x6 board stores each relationship once: weapon/suspect, weapon/location,
+            // and location/suspect. Location/location cells are intentionally blocked.
+            // TODO: if the grid later adds duplicate mirrored cells, mirror updates there too.
             if (nextMark == "O") {
-                val rowGroup = when {
-                    isLocationSuspectCell(row, col) -> 0..2
-                    isLocationWeaponCell(row, col) -> 0..2
-                    isWeaponSuspectCell(row, col) -> 3..5
-                    else -> 0..-1
-                }
-                val colGroup = when {
-                    isLocationSuspectCell(row, col) -> 0..2
-                    isLocationWeaponCell(row, col) -> 3..5
-                    isWeaponSuspectCell(row, col) -> 0..2
-                    else -> 0..-1
-                }
+                val rowGroup = if (row in 0..2) 0..2 else 3..5
+                val colGroup = if (col in 0..2) 0..2 else 3..5
 
                 for (c in colGroup) {
                     if (c != col && currentState[Pair(row, c)] != "O") queue(row, c, "X")

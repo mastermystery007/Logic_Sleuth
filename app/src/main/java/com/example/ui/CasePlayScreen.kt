@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -321,33 +320,8 @@ fun LogicGridTab(
     onCellClick: (row: Int, col: Int) -> Unit,
     onResetGrid: () -> Unit
 ) {
-    val columnGroupLabels = listOf("Suspects", "Weapons")
-    val rowGroupLabels = listOf("Locations", "Weapons")
-    val columnHeaders = case.suspects + case.weapons
-    val rowHeaders = case.locations + case.weapons
-    val horizontalScrollState = rememberScrollState()
-    val rowHeaderWidth = 132.dp
-    val cellWidth = 104.dp
-    val cellHeight = 52.dp
-    val columnGroupWidth = 312.dp
-    val disabledCellBackground = SlateCard.copy(alpha = 0.72f)
-
-    fun isLocationSuspectCell(row: Int, col: Int): Boolean =
-        row in 0..2 && col in 0..2
-
-    fun isLocationWeaponCell(row: Int, col: Int): Boolean =
-        row in 0..2 && col in 3..5
-
-    fun isWeaponSuspectCell(row: Int, col: Int): Boolean =
-        row in 3..5 && col in 0..2
-
-    fun isPlayableCell(row: Int, col: Int): Boolean =
-        isLocationSuspectCell(row, col) ||
-            isLocationWeaponCell(row, col) ||
-            isWeaponSuspectCell(row, col)
-
-    fun isDisabledCell(row: Int, col: Int): Boolean =
-        row in 3..5 && col in 3..5
+    val rowHeaders = listOf("W1", "W2", "W3", "L1", "L2", "L3")
+    val colHeaders = listOf("S1", "S2", "S3", "L1", "L2", "L3")
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Focus Cell Inspector Panel
@@ -433,27 +407,34 @@ fun LogicGridTab(
                 .clip(RoundedCornerShape(8.dp))
                 .background(CharcoalSurface)
         ) {
-            Row {
-                Box(
-                    modifier = Modifier
-                        .size(width = rowHeaderWidth, height = 28.dp)
-                        .border(0.5.dp, Color(0x33B0BEC5))
-                        .background(SlateCard),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "GRID",
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp,
-                        color = NoirAmber
-                    )
-                }
-                Row(
-                    modifier = Modifier.horizontalScroll(horizontalScrollState, reverseScrolling = false)
-                ) {
-                    columnGroupLabels.forEachIndexed { index, label ->
-                        val isWeaponGroup = index == 1
+            Column(
+                modifier = Modifier
+                    .border(2.dp, Color(0x33B0BEC5), RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(CharcoalSurface)
+            ) {
+                // Header Row (Top label spaces + headers)
+                Row {
+                    // Empty corner
+                    Box(
+                        modifier = Modifier
+                            .size(width = 60.dp, height = 44.dp)
+                            .border(0.5.dp, Color(0x33B0BEC5))
+                            .background(SlateCard),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "GRID",
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            color = NoirAmber
+                        )
+                    }
+
+                    // Column headers representing Suspects (S1-S3) and Locations (L1-L3)
+                    colHeaders.forEachIndexed { index, header ->
+                        val isLocationGroup = index >= 3
                         Box(
                             modifier = Modifier
                                 .size(width = columnGroupWidth, height = 28.dp)
@@ -658,6 +639,84 @@ fun LogicGridTab(
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Legend keys cards
+        Text(
+            text = "CASE INDEX",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = NoirAmber,
+            modifier = Modifier.padding(bottom = 6.dp)
+        )
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Suspect list
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "👤 SUSPECT KEY:",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = NoirAmber
+                    )
+                    case.suspects.forEachIndexed { idx, s ->
+                        val code = "S${idx + 1}"
+                        Text(
+                            text = "[$code] $s — ${case.suspectDescriptions[s] ?: ""}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SlateGrey
+                        )
+                    }
+                }
+
+                Divider(color = Color(0x19B0BEC5))
+
+                // Weapon list
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "🔪 WEAPON KEY:",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = NoirAmber
+                    )
+                    case.weapons.forEachIndexed { idx, w ->
+                        val code = "W${idx + 1}"
+                        Text(
+                            text = "[$code] $w — ${case.weaponDescriptions[w] ?: ""}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SlateGrey
+                        )
+                    }
+                }
+
+                Divider(color = Color(0x19B0BEC5))
+
+                // Location list
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "🏛️ LOCATION KEY:",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = NoirAmber
+                    )
+                    case.locations.forEachIndexed { idx, l ->
+                        val code = "L${idx + 1}"
+                        Text(
+                            text = "[$code] $l — ${case.locationDescriptions[l] ?: ""}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SlateGrey
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -757,6 +816,55 @@ fun DossierTab(
                             lineHeight = 18.sp,
                             textDecoration = if (isChecked) TextDecoration.LineThrough else TextDecoration.None,
                             modifier = Modifier.padding(top = 12.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Interrogation transcripts tab
+@Composable
+fun InterrogationTab(
+    case: Case
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (case.hasLiar) {
+            // Police caution warning element
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFE65100))
+                    .border(2.dp, Color(0xFFFFB300), RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Warning caution tape",
+                        tint = Color.White
+                    )
+                    Column {
+                        Text(
+                            text = "CRITICAL TWIST ALERT",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Exactly ONE of the suspects below is lying. The other two are telling the absolute truth. Spot the logical contradiction to expose the murderer!",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 }
