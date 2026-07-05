@@ -1,10 +1,7 @@
-# Detective_Murdle reference
+# Reference repository path
 
-This folder is reserved for the upstream reference-only repository:
+This directory is reserved for the reference-only repository path `reference/Detective_Murdle`.
 
-- Repository: https://github.com/mastermystery007/Detective_Murdle
-- Intended use: reference only for comparing architecture, models, cases, grid UI, game flow, viewmodels, and persistence.
+Upstream URL: https://github.com/mastermystery007/Detective_Murdle
 
-Do not import this folder into the Logic_Sleuth Android build or edit its upstream source files when using it as a reference.
-
-Note: the automated environment could not complete a direct `git clone` because outbound GitHub access from the shell was blocked by the configured proxy (`CONNECT tunnel failed, response 403`). The repository was inspected through the available browser/web channel and summarized in `docs/reference-codebase-map.md`.
+The target app in this repository is Logic Detective. Do not import reference files into the Android build or use the reference repository as app branding.

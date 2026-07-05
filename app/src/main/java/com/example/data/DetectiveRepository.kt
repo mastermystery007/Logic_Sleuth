@@ -24,8 +24,8 @@ class DetectiveRepository(private val dao: DetectiveDao) {
     fun getNotesForCase(caseId: Int): Flow<CaseNotes?> =
         dao.getNotesForCase(caseId)
 
-    suspend fun saveNotes(notes: CaseNotes) {
-        dao.insertNotes(notes)
+    suspend fun saveCheckedClues(progress: CaseNotes) {
+        dao.insertNotes(progress)
     }
 
     suspend fun markCaseCompleted(caseId: Int) {

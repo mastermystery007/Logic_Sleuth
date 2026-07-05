@@ -48,6 +48,9 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
     private val _chosenLocation = MutableStateFlow("")
     val chosenLocation: StateFlow<String> = _chosenLocation.asStateFlow()
 
+    private val _chosenLiar = MutableStateFlow("")
+    val chosenLiar: StateFlow<String> = _chosenLiar.asStateFlow()
+
     private val _accusationResult = MutableStateFlow<AccusationResult>(AccusationResult.None)
     val accusationResult: StateFlow<AccusationResult> = _accusationResult.asStateFlow()
 
@@ -65,12 +68,18 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val activeNotes: StateFlow<String> = _activeCaseId
+    val checkedClues: StateFlow<Set<Int>> = _activeCaseId
         .flatMapLatest { id ->
             if (id == null) flowOf(null) else repository.getNotesForCase(id)
         }
-        .map { it?.notes ?: "" }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+        .map { progress ->
+            progress?.notes
+                ?.split(",")
+                ?.mapNotNull { it.toIntOrNull() }
+                ?.toSet()
+                ?: emptySet()
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val isActiveCaseCompleted: StateFlow<Boolean> = combine(_activeCaseId, completedCaseIds) { activeId, completedIds ->
@@ -83,6 +92,7 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         _chosenSuspect.value = ""
         _chosenWeapon.value = ""
         _chosenLocation.value = ""
+        _chosenLiar.value = ""
         _accusationResult.value = AccusationResult.None
     }
 
@@ -93,76 +103,40 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
     // Grid Cell Selection: empty "" -> "X" -> "O" -> empty ""
     fun toggleGridCell(row: Int, col: Int) {
         val caseId = _activeCaseId.value ?: return
-        
+        if (row !in 0..5 || col !in 0..5 || (row >= 3 && col >= 3)) return
+
         viewModelScope.launch {
-            // Read active grid cell from flow or direct query safely
             val currentState = activeGrid.value
-            val pair = Pair(row, col)
-            val nextMark = when (currentState[pair]) {
+            val nextMark = when (currentState[Pair(row, col)]) {
                 "X" -> "O"
                 "O" -> ""
                 else -> "X"
             }
+            val cellsToSave = linkedMapOf<Pair<Int, Int>, GridCellState>()
 
-            if (nextMark.isEmpty()) {
-                val cellState = GridCellState(
-                    cellId = "${caseId}_${row}_${col}",
-                    caseId = caseId,
-                    row = row,
-                    col = col,
-                    mark = ""
-                )
-                repository.saveGridCell(cellState)
-            } else {
-                if (nextMark == "O") {
-                    val cellsToSave = mutableListOf<GridCellState>()
-                    
-                    // Main tapped cell is "O"
-                    cellsToSave.add(
-                        GridCellState("${caseId}_${row}_${col}", caseId, row, col, "O")
-                    )
+            fun queue(r: Int, c: Int, mark: String) {
+                if (r !in 0..5 || c !in 0..5 || (r >= 3 && c >= 3)) return
+                cellsToSave[Pair(r, c)] = GridCellState("${caseId}_${r}_${c}", caseId, r, c, mark)
+            }
 
-                    // Find subgrid boundary
-                    val rowSubgrid = if (row in 0..2) 0..2 else 3..5
-                    val colSubgrid = if (col in 0..2) 0..2 else 3..5
+            queue(row, col, nextMark)
 
-                    // Auto-cross other cells in same row within the subgrid column bounds
-                    for (c in colSubgrid) {
-                        if (c != col) {
-                            val currentC = currentState[Pair(row, c)]
-                            if (currentC != "O") {
-                                cellsToSave.add(
-                                    GridCellState("${caseId}_${row}_${c}", caseId, row, c, "X")
-                                )
-                            }
-                        }
-                    }
+            // The 6x6 board stores each relationship once: weapon/suspect, weapon/location,
+            // and location/suspect. Location/location cells are intentionally blocked.
+            // TODO: if the grid later adds duplicate mirrored cells, mirror updates there too.
+            if (nextMark == "O") {
+                val rowGroup = if (row in 0..2) 0..2 else 3..5
+                val colGroup = if (col in 0..2) 0..2 else 3..5
 
-                    // Auto-cross other cells in same column within the subgrid row bounds
-                    for (r in rowSubgrid) {
-                        if (r != row) {
-                            val currentR = currentState[Pair(r, col)]
-                            if (currentR != "O") {
-                                cellsToSave.add(
-                                    GridCellState("${caseId}_${r}_${col}", caseId, r, col, "X")
-                                )
-                            }
-                        }
-                    }
-
-                    repository.saveGridCells(cellsToSave)
-                } else {
-                    // Regular "X" click
-                    val cellState = GridCellState(
-                        cellId = "${caseId}_${row}_${col}",
-                        caseId = caseId,
-                        row = row,
-                        col = col,
-                        mark = nextMark
-                    )
-                    repository.saveGridCell(cellState)
+                for (c in colGroup) {
+                    if (c != col && currentState[Pair(row, c)] != "O") queue(row, c, "X")
+                }
+                for (r in rowGroup) {
+                    if (r != row && currentState[Pair(r, col)] != "O") queue(r, col, "X")
                 }
             }
+
+            repository.saveGridCells(cellsToSave.values.toList())
         }
     }
 
@@ -181,21 +155,29 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         _accusationResult.value = AccusationResult.None
     }
 
+    fun chooseLiar(liar: String) {
+        _chosenLiar.value = liar
+        _accusationResult.value = AccusationResult.None
+    }
+
     fun makeAccusation() {
         val case = activeCase.value ?: return
         val suspect = _chosenSuspect.value
         val weapon = _chosenWeapon.value
         val location = _chosenLocation.value
+        val liar = _chosenLiar.value
 
-        if (suspect.isEmpty() || weapon.isEmpty() || location.isEmpty()) {
+        if (suspect.isEmpty() || weapon.isEmpty() || location.isEmpty() || (case.hasLiar && liar.isEmpty())) {
             _accusationResult.value = AccusationResult.Failure
             return
         }
 
-        if (suspect == case.solutionSuspect &&
+        val basicAccusationCorrect = suspect == case.solutionSuspect &&
             weapon == case.solutionWeapon &&
             location == case.solutionLocation
-        ) {
+        val liarCorrect = !case.hasLiar || liar == case.solutionLiar
+
+        if (basicAccusationCorrect && liarCorrect) {
             _accusationResult.value = AccusationResult.Success
             viewModelScope.launch {
                 repository.markCaseCompleted(case.id)
@@ -205,10 +187,20 @@ class DetectiveViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun saveNotes(notesText: String) {
+    fun toggleClueChecked(index: Int) {
         val caseId = _activeCaseId.value ?: return
         viewModelScope.launch {
-            repository.saveNotes(CaseNotes(caseId, notesText))
+            val nextChecked = checkedClues.value.toMutableSet().apply {
+                if (!add(index)) remove(index)
+            }
+            repository.saveCheckedClues(CaseNotes(caseId, nextChecked.sorted().joinToString(",")))
+        }
+    }
+
+    fun resetCheckedClues() {
+        val caseId = _activeCaseId.value ?: return
+        viewModelScope.launch {
+            repository.saveCheckedClues(CaseNotes(caseId, ""))
         }
     }
 

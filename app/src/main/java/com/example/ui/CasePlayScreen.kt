@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.Case
@@ -36,11 +37,12 @@ fun CasePlayScreen(
 ) {
     val case by viewModel.activeCase.collectAsState()
     val gridState by viewModel.activeGrid.collectAsState()
-    val notesText by viewModel.activeNotes.collectAsState()
+    val checkedClues by viewModel.checkedClues.collectAsState()
     val isCompleted by viewModel.isActiveCaseCompleted.collectAsState()
     val chosenSuspect by viewModel.chosenSuspect.collectAsState()
     val chosenWeapon by viewModel.chosenWeapon.collectAsState()
     val chosenLocation by viewModel.chosenLocation.collectAsState()
+    val chosenLiar by viewModel.chosenLiar.collectAsState()
     val accusationResult by viewModel.accusationResult.collectAsState()
 
     // Return early if no case selected
@@ -50,12 +52,6 @@ fun CasePlayScreen(
     var focusedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showExplanationDialog by remember { mutableStateOf(false) }
 
-    // Synchronize local notes state with database
-    var localNotesText by remember(notesText) { mutableStateOf(notesText) }
-
-    LaunchedEffect(notesText) {
-        localNotesText = notesText
-    }
 
     if (accusationResult == AccusationResult.Success) {
         showExplanationDialog = true
@@ -159,7 +155,7 @@ fun CasePlayScreen(
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             Text(
-                                text = "LIAR SUSPECTS",
+                                text = "ONE WITNESS MAY BE LYING",
                                 color = BloodRed,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp,
@@ -242,11 +238,8 @@ fun CasePlayScreen(
                 "Case File" -> {
                     CaseFileTab(
                         case = activeCase,
-                        notesText = localNotesText,
-                        onNotesChange = { text ->
-                            localNotesText = text
-                            viewModel.saveNotes(text)
-                        }
+                        checkedClues = checkedClues,
+                        onToggleClue = { index -> viewModel.toggleClueChecked(index) }
                     )
                 }
                 "Interrogations" -> {
@@ -259,6 +252,7 @@ fun CasePlayScreen(
                         chosenSuspect = chosenSuspect,
                         chosenWeapon = chosenWeapon,
                         chosenLocation = chosenLocation,
+                        chosenLiar = chosenLiar,
                         accusationResult = accusationResult,
                         isCaseCompleted = isCompleted,
                         onShowExplanation = { showExplanationDialog = true }
@@ -284,7 +278,7 @@ fun CasePlayScreen(
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
-                        text = "CASE DECLASSIFIED!",
+                        text = "CASE SOLVED",
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
                         color = ClueGreen
@@ -329,8 +323,8 @@ fun LogicGridTab(
     onCellClick: (row: Int, col: Int) -> Unit,
     onResetGrid: () -> Unit
 ) {
-    val rowHeaders = listOf("🔪X", "🔪Y", "🔪Z", "🏛️D", "🏛️E", "🏛️F")
-    val colHeaders = listOf("👤A", "👤B", "👤C", "🏛️D", "🏛️E", "🏛️F")
+    val rowHeaders = listOf("W1", "W2", "W3", "L1", "L2", "L3")
+    val colHeaders = listOf("S1", "S2", "S3", "L1", "L2", "L3")
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Focus Cell Inspector Panel
@@ -431,7 +425,7 @@ fun LogicGridTab(
                         )
                     }
 
-                    // Column headers representing Suspects (A-C) and Locations (D-F)
+                    // Column headers representing Suspects (S1-S3) and Locations (L1-L3)
                     colHeaders.forEachIndexed { index, header ->
                         val isLocationGroup = index >= 3
                         Box(
@@ -603,7 +597,7 @@ fun LogicGridTab(
                         color = NoirAmber
                     )
                     case.suspects.forEachIndexed { idx, s ->
-                        val code = "A,B,C".split(",")[idx]
+                        val code = "S${idx + 1}"
                         Text(
                             text = "[$code] $s — ${case.suspectDescriptions[s] ?: ""}",
                             style = MaterialTheme.typography.bodySmall,
@@ -623,7 +617,7 @@ fun LogicGridTab(
                         color = NoirAmber
                     )
                     case.weapons.forEachIndexed { idx, w ->
-                        val code = "X,Y,Z".split(",")[idx]
+                        val code = "W${idx + 1}"
                         Text(
                             text = "[$code] $w — ${case.weaponDescriptions[w] ?: ""}",
                             style = MaterialTheme.typography.bodySmall,
@@ -643,7 +637,7 @@ fun LogicGridTab(
                         color = NoirAmber
                     )
                     case.locations.forEachIndexed { idx, l ->
-                        val code = "D,E,F".split(",")[idx]
+                        val code = "L${idx + 1}"
                         Text(
                             text = "[$code] $l — ${case.locationDescriptions[l] ?: ""}",
                             style = MaterialTheme.typography.bodySmall,
@@ -660,14 +654,13 @@ fun LogicGridTab(
 @Composable
 fun CaseFileTab(
     case: Case,
-    notesText: String,
-    onNotesChange: (String) -> Unit
+    checkedClues: Set<Int>,
+    onToggleClue: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Backstory Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
@@ -686,7 +679,7 @@ fun CaseFileTab(
                         tint = NoirAmber
                     )
                     Text(
-                        text = "THE CHRONICLES",
+                        text = "CASE BRIEF",
                         style = MaterialTheme.typography.labelLarge,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
@@ -702,7 +695,6 @@ fun CaseFileTab(
             }
         }
 
-        // Clues Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
@@ -732,88 +724,31 @@ fun CaseFileTab(
                 Divider(color = Color(0x33B0BEC5))
 
                 case.clues.forEachIndexed { index, clue ->
+                    val isChecked = checkedClues.contains(index)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.Top
                     ) {
-                        Text(
-                            text = "•",
-                            color = NoirAmber,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                        Checkbox(
+                            checked = isChecked,
+                            onCheckedChange = { onToggleClue(index) },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = NoirAmber,
+                                uncheckedColor = MutedGrey,
+                                checkmarkColor = Color.Black
+                            )
                         )
                         Text(
                             text = clue,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = SlateGrey,
-                            lineHeight = 18.sp
+                            color = if (isChecked) MutedGrey.copy(alpha = 0.55f) else SlateGrey,
+                            lineHeight = 18.sp,
+                            textDecoration = if (isChecked) TextDecoration.LineThrough else TextDecoration.None,
+                            modifier = Modifier.padding(top = 12.dp)
                         )
                     }
                 }
-            }
-        }
-
-        // Notepad Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notes,
-                        contentDescription = "Notepad icon",
-                        tint = NoirAmber
-                    )
-                    Text(
-                        text = "DETECTIVE'S JOURNAL",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = NoirAmber
-                    )
-                }
-
-                Text(
-                    text = "Type down custom mental links, deductions, or lists to reference later. Journal saves automatically.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MutedGrey
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                TextField(
-                    value = notesText,
-                    onValueChange = onNotesChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(130.dp)
-                        .testTag("case_notes_input"),
-                    placeholder = {
-                        Text(
-                            "e.g., Lord Crimson must have been in the Conservatory because...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MutedGrey
-                        )
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = SlateCard,
-                        unfocusedContainerColor = CharcoalSurface,
-                        focusedTextColor = GridWhite,
-                        unfocusedTextColor = GridWhite,
-                        cursorColor = NoirAmber,
-                        focusedIndicatorColor = NoirAmber,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                )
             }
         }
     }
@@ -964,6 +899,7 @@ fun AccusationTab(
     chosenSuspect: String,
     chosenWeapon: String,
     chosenLocation: String,
+    chosenLiar: String,
     accusationResult: AccusationResult,
     isCaseCompleted: Boolean,
     onShowExplanation: () -> Unit
@@ -971,6 +907,7 @@ fun AccusationTab(
     var isSuspectExpanded by remember { mutableStateOf(false) }
     var isWeaponExpanded by remember { mutableStateOf(false) }
     var isLocationExpanded by remember { mutableStateOf(false) }
+    var isLiarExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -1002,7 +939,7 @@ fun AccusationTab(
                         tint = BloodRed
                     )
                     Text(
-                        text = "THE POLICE CHARGES",
+                        text = "FINAL ACCUSATION",
                         style = MaterialTheme.typography.labelLarge,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
@@ -1011,7 +948,11 @@ fun AccusationTab(
                 }
 
                 Text(
-                    text = "Specify who committed the murder, with which weapon, and at what location. If they are logically correct, you claim the solved Case Badge!",
+                    text = if (case.hasLiar) {
+                        "This case includes one liar. Identify the killer, weapon, location, and lying suspect."
+                    } else {
+                        "Specify who committed the crime, with which weapon, and where."
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = SlateGrey
                 )
@@ -1021,7 +962,7 @@ fun AccusationTab(
                 // Suspect select dropdown
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "THE PRISONER CHOSEN:",
+                        text = "SUSPECT:",
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
                         color = MutedGrey
@@ -1065,7 +1006,7 @@ fun AccusationTab(
                 // Weapon select dropdown
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "THE MURDER DEVICE USED:",
+                        text = "WEAPON:",
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
                         color = MutedGrey
@@ -1109,7 +1050,7 @@ fun AccusationTab(
                 // Location select dropdown
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
-                        text = "THE CRIME LOCATION:",
+                        text = "LOCATION:",
                         style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
                         color = MutedGrey
@@ -1150,6 +1091,51 @@ fun AccusationTab(
                     }
                 }
 
+                if (case.hasLiar) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "Who is lying?",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontFamily = FontFamily.Monospace,
+                            color = MutedGrey
+                        )
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Button(
+                                onClick = { isLiarExpanded = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = SlateCard),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("select_liar_button")
+                            ) {
+                                Text(
+                                    text = if (chosenLiar.isEmpty()) "SELECT LYING SUSPECT..." else chosenLiar,
+                                    color = if (chosenLiar.isEmpty()) MutedGrey else GridWhite,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f),
+                                    textAlign = TextAlign.Start
+                                )
+                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown icon", tint = GridWhite)
+                            }
+                            DropdownMenu(
+                                expanded = isLiarExpanded,
+                                onDismissRequest = { isLiarExpanded = false },
+                                modifier = Modifier.background(SlateCard)
+                            ) {
+                                case.suspects.forEach { suspect ->
+                                    DropdownMenuItem(
+                                        text = { Text(suspect, color = GridWhite, fontWeight = FontWeight.Bold) },
+                                        onClick = {
+                                            viewModel.chooseLiar(suspect)
+                                            isLiarExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Results banner
@@ -1169,7 +1155,7 @@ fun AccusationTab(
                              ) {
                                  Icon(Icons.Default.CheckCircle, contentDescription = "Success check", tint = ClueGreen)
                                  Text(
-                                     text = "CASE SOLVED! Outstanding work, Detective. Tap the button below to review the declassified files.",
+                                     text = "CASE SOLVED! Outstanding work, Detective. Tap the button below to review the case file.",
                                      color = ClueGreen,
                                      style = MaterialTheme.typography.bodySmall,
                                      fontWeight = FontWeight.Bold
@@ -1192,7 +1178,7 @@ fun AccusationTab(
                              ) {
                                  Icon(Icons.Default.Cancel, contentDescription = "Failure cross icon", tint = BloodRed)
                                  Text(
-                                     text = "ACQUISITION CHARGES DISMISSED! That combination doesn't match our logic. Keep searching the grid!",
+                                     text = "ACCUSATION NOT PROVEN. That combination does not match the clues. Keep searching the grid!",
                                      color = BloodRed,
                                      style = MaterialTheme.typography.bodySmall,
                                      fontWeight = FontWeight.Bold
@@ -1214,11 +1200,11 @@ fun AccusationTab(
                             .weight(1f)
                             .testTag("accuse_button"),
                         shape = RoundedCornerShape(8.dp),
-                        enabled = chosenSuspect.isNotEmpty() && chosenWeapon.isNotEmpty() && chosenLocation.isNotEmpty()
+                        enabled = chosenSuspect.isNotEmpty() && chosenWeapon.isNotEmpty() && chosenLocation.isNotEmpty() && (!case.hasLiar || chosenLiar.isNotEmpty())
                     ) {
                         Icon(Icons.Default.Gavel, contentDescription = "Gavel symbol", tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("ARRANGE CHARGES", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text("MAKE ACCUSATION", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     }
 
                     if (isCaseCompleted) {
