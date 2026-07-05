@@ -21,5 +21,6 @@ data class GridCellState(
 @Entity(tableName = "case_notes")
 data class CaseNotes(
     @PrimaryKey val caseId: Int,
+    // Reuses the legacy notes column to persist comma-separated checked clue indices.
     val notes: String
 )
