@@ -272,34 +272,48 @@ fun CasePlayScreen(
         AlertDialog(
             onDismissRequest = { showExplanationDialog = false },
             title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Success Star",
-                        tint = ClueGreen,
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Text(
-                        text = "CASE CLOSED",
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = ClueGreen
-                    )
-                }
+                Text(
+                    text = "CASE CLOSED",
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = NoirAmber
+                )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         text = "Your deduction matches the evidence.",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = GridWhite,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = GridWhite
+                    )
+
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = SlateCard),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            SolutionRow(label = "Culprit:", value = activeCase.solutionSuspect)
+                            SolutionRow(label = "Weapon:", value = activeCase.solutionWeapon)
+                            SolutionRow(label = "Location:", value = activeCase.solutionLocation)
+                            if (activeCase.hasLiar && activeCase.solutionLiar != null) {
+                                SolutionRow(label = "False witness:", value = activeCase.solutionLiar)
+                            }
+                        }
+                    }
+
+                    Divider(color = Color(0x33B0BEC5))
+
+                    Text(
+                        text = "CASE EXPLANATION",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = NoirAmber,
                         fontWeight = FontWeight.Bold
                     )
-                    SolutionSummaryCard(case = activeCase)
-                    Divider(color = Color(0x33B0BEC5))
+
                     Text(
                         text = "CASE EXPLANATION",
                         style = MaterialTheme.typography.labelMedium,
@@ -310,7 +324,8 @@ fun CasePlayScreen(
                     Text(
                         text = activeCase.murderExplanation,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = SlateGrey
+                        color = SlateGrey,
+                        lineHeight = 20.sp
                     )
                 }
             },
@@ -332,46 +347,20 @@ fun CasePlayScreen(
 }
 
 @Composable
-private fun SolutionSummaryCard(case: Case) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SlateCard),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, NoirAmber.copy(alpha = 0.35f))
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            SolutionRow(label = "Culprit", value = case.solutionSuspect)
-            SolutionRow(label = "Weapon", value = case.solutionWeapon)
-            SolutionRow(label = "Location", value = case.solutionLocation)
-            if (case.hasLiar && case.solutionLiar != null) {
-                SolutionRow(label = "False witness", value = case.solutionLiar)
-            }
-        }
-    }
-}
-
-@Composable
 private fun SolutionRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "$label:",
+            text = label,
             color = NoirAmber,
+            style = MaterialTheme.typography.labelSmall,
             fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.widthIn(min = 105.dp)
+            modifier = Modifier.width(105.dp)
         )
         Text(
             text = value,
             color = GridWhite,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -385,8 +374,8 @@ fun LogicGridTab(
     onCellClick: (row: Int, col: Int) -> Unit,
     onResetGrid: () -> Unit
 ) {
-    var fitToScreen by remember { mutableStateOf(true) }
     val horizontalScrollState = rememberScrollState()
+    var fitToScreen by remember { mutableStateOf(true) }
     val rowHeaderWidth = if (fitToScreen) 92.dp else 140.dp
     val cellWidth = if (fitToScreen) 52.dp else 120.dp
     val cellHeight = if (fitToScreen) 48.dp else 56.dp
@@ -415,12 +404,12 @@ fun LogicGridTab(
         row in 3..5 && col in 3..5
 
     @Composable
-    fun HeaderCell(header: String) {
+    fun HeaderCell(header: String, isWeaponGroup: Boolean) {
         Box(
             modifier = Modifier
                 .size(width = cellWidth, height = cellHeight)
                 .border(0.5.dp, Color(0x33B0BEC5))
-                .background(SlateCard),
+                .background(if (isWeaponGroup) Color(0x22388E3C) else Color(0x22FFB300)),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -598,8 +587,8 @@ fun LogicGridTab(
                 )
 
                 Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
-                    columnHeaders.forEach { header ->
-                        HeaderCell(header = header)
+                    columnHeaders.forEachIndexed { index, header ->
+                        HeaderCell(header = header, isWeaponGroup = index >= 3)
                     }
                 }
             }
@@ -630,45 +619,51 @@ fun LogicGridTab(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             OutlinedButton(
                 onClick = { fitToScreen = !fitToScreen },
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("toggle_grid_view_button"),
-                border = BorderStroke(1.dp, NoirAmber.copy(alpha = 0.6f)),
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+                border = BorderStroke(1.dp, NoirAmber),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = NoirAmber)
             ) {
                 Text(
                     text = if (fitToScreen) "LARGE VIEW" else "FIT TO SCREEN",
-                    color = NoirAmber,
+                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontSize = 10.sp
                 )
             }
 
             OutlinedButton(
                 onClick = onResetGrid,
-                modifier = Modifier
-                    .weight(1f)
-                    .testTag("reset_grid_button"),
-                border = BorderStroke(1.dp, BloodRed.copy(alpha = 0.6f)),
+                modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
+                border = BorderStroke(1.dp, BloodRed),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = BloodRed)
             ) {
                 Text(
                     text = "CLEAR GRID",
-                    color = BloodRed,
+                    fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 10.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontSize = 10.sp
                 )
             }
         }
+    }
+}
+
+        Text(
+            text = "Toggles: Unknown ➔ ✕ (Cross) ➔ ⬤ (Match)",
+            style = MaterialTheme.typography.labelSmall,
+            color = MutedGrey,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
     }
 }
 
@@ -740,16 +735,104 @@ fun CastSectionCard(
             Divider(color = Color(0x33B0BEC5))
 
             items.forEach { (name, description) ->
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(SlateCard.copy(alpha = 0.45f))
+                        .border(1.dp, Color(0x22B0BEC5), RoundedCornerShape(8.dp))
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Text(
                         text = name,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = GridWhite,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = GridWhite
+                    )
+
+                    if (description.isNotBlank()) {
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = SlateGrey,
+                            lineHeight = 17.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WitnessStatementsCard(case: Case) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.RecordVoiceOver,
+                    contentDescription = "Witness statements icon",
+                    tint = NoirAmber
+                )
+                Text(
+                    text = "WITNESS STATEMENTS",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = NoirAmber
+                )
+            }
+
+            Divider(color = Color(0x33B0BEC5))
+
+            if (case.hasLiar) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(BloodRed.copy(alpha = 0.12f))
+                        .border(1.dp, BloodRed.copy(alpha = 0.45f), RoundedCornerShape(8.dp))
+                        .padding(10.dp)
+                ) {
+                    Text(
+                        text = "Exactly one witness may be lying. Use these statements with the physical clues.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = BloodRed,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            case.statements.forEach { statement ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(SlateCard.copy(alpha = 0.55f))
+                        .border(1.dp, Color(0x22B0BEC5), RoundedCornerShape(8.dp))
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = statement.speaker,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = NoirAmber
                     )
                     Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "“${statement.text}”",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = SlateGrey,
                         lineHeight = 18.sp
                     )
@@ -1306,20 +1389,39 @@ fun AccusationTab(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SolutionSummaryCard(case = case)
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = SlateCard),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            SolutionRow(label = "Culprit:", value = case.solutionSuspect)
+                            SolutionRow(label = "Weapon:", value = case.solutionWeapon)
+                            SolutionRow(label = "Location:", value = case.solutionLocation)
+                            if (case.hasLiar && case.solutionLiar != null) {
+                                SolutionRow(label = "False witness:", value = case.solutionLiar)
+                            }
+                        }
+                    }
+
                     Divider(color = Color(0x33B0BEC5))
+
                     Text(
                         text = "CASE EXPLANATION",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = NoirAmber
+                        color = NoirAmber,
+                        fontWeight = FontWeight.Bold
                     )
+
                     Text(
                         text = case.murderExplanation,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = SlateGrey
+                        color = SlateGrey,
+                        lineHeight = 20.sp
                     )
                 }
             },

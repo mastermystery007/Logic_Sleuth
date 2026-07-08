@@ -1,47 +1,19 @@
-# Play Store Release Checklist — Noir Logic
+# Noir Logic - Play Store Release Checklist
 
-## Identity
-- [ ] App name confirmed: Noir Logic
-- [ ] Dashboard title confirmed: NOIR LOGIC
-- [ ] Package/applicationId finalized
-- [ ] Version code set
-- [ ] Version name set
-
-## App Icon
-- [ ] App icon/logo added
-- [ ] Adaptive icon foreground added
-- [ ] Adaptive icon background added
-- [ ] Icon checked at 48x48 px
-- [ ] No text/letters in icon
-
-## Build & Signing
-- [ ] Debug build passes
-- [ ] Release signing configured
-- [ ] Upload keystore stored safely
-- [ ] Signed release bundle `.aab` generated
-- [ ] Release build reviewed before upload
-
-## Ads
-- [ ] Real AdMob app created
-- [ ] Real AdMob app ID configured outside source
-- [ ] Real rewarded check-answer ad unit ID configured outside source
-- [ ] Real rewarded reveal-solution ad unit ID configured outside source
-- [ ] Test ads tested before production ads
-- [ ] Production ads enabled only after testing
-
-## Store Listing
-- [ ] Short description prepared
-- [ ] Full description prepared
-- [ ] Screenshots prepared
-- [ ] Feature graphic prepared if needed
-- [ ] Privacy policy URL prepared
-- [ ] Data Safety form prepared
-- [ ] Content rating questionnaire completed
-
-## Testing & Release
-- [ ] Internal testing release uploaded
-- [ ] Core gameplay tested on physical Android device
-- [ ] Rewarded ad flow tested
-- [ ] Wrong-answer reveal confirmed not to mark case completed
-- [ ] Correct-answer flow confirmed to mark case completed
-- [ ] Production release reviewed
+- [ ] **App name confirmed**: Noir Logic
+- [ ] **Package/applicationId finalized**: `com.aistudio.detectivegrid.qpxyz`
+- [ ] **App icon/logo added**
+- [ ] **Adaptive icon added**
+- [ ] **Version code/version name set**
+- [ ] **Release signing configured**
+- [ ] **Real AdMob app ID configured** (Set `ADMOB_APP_ID` in `local.properties` or environment)
+- [ ] **Real rewarded ad unit IDs configured** (Set `ADMOB_REWARDED_CHECK_ANSWER_ID` and `ADMOB_REWARDED_REVEAL_SOLUTION_ID`)
+- [ ] **Test ads tested before production**
+- [ ] **Privacy policy URL prepared**
+- [ ] **Data Safety form prepared**
+- [ ] **Screenshots prepared**
+- [ ] **Short description prepared**
+- [ ] **Full description prepared**
+- [ ] **Content rating questionnaire completed**
+- [ ] **Internal testing release uploaded**
+- [ ] **Production release reviewed**
