@@ -17,6 +17,17 @@ android {
     versionCode = 1
     versionName = "1.0"
 
+    val defaultAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
+    val defaultRewardedAdUnitId = "ca-app-pub-3940256099942544/5224354917"
+    val adMobAppId = providers.gradleProperty("ADMOB_APP_ID").orNull ?: defaultAdMobAppId
+    val rewardedCheckAnswerId = providers.gradleProperty("ADMOB_REWARDED_CHECK_ANSWER_ID").orNull ?: defaultRewardedAdUnitId
+    val rewardedRevealSolutionId = providers.gradleProperty("ADMOB_REWARDED_REVEAL_SOLUTION_ID").orNull ?: defaultRewardedAdUnitId
+
+    manifestPlaceholders["adMobAppId"] = adMobAppId
+    buildConfigField("String", "ADMOB_APP_ID", "\"$adMobAppId\"")
+    buildConfigField("String", "ADMOB_REWARDED_CHECK_ANSWER_ID", "\"$rewardedCheckAnswerId\"")
+    buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$rewardedRevealSolutionId\"")
+
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
@@ -89,6 +100,7 @@ dependencies {
   implementation(libs.logging.interceptor)
   implementation(libs.moshi.kotlin)
   implementation(libs.okhttp)
+  implementation(libs.play.services.ads)
   // implementation(libs.play.services.location)
   implementation(libs.retrofit)
   testImplementation(libs.androidx.compose.ui.test.junit4)
