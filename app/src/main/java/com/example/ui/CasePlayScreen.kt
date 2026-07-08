@@ -315,6 +315,13 @@ fun CasePlayScreen(
                     )
 
                     Text(
+                        text = "CASE EXPLANATION",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = NoirAmber
+                    )
+                    Text(
                         text = activeCase.murderExplanation,
                         style = MaterialTheme.typography.bodyMedium,
                         color = SlateGrey,
@@ -603,6 +610,14 @@ fun LogicGridTab(
             }
         }
 
+        Text(
+            text = "Toggles: Unknown ➔ ✕ ➔ ⬤",
+            style = MaterialTheme.typography.labelSmall,
+            color = MutedGrey,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -639,6 +654,8 @@ fun LogicGridTab(
                 )
             }
         }
+    }
+}
 
         Text(
             text = "Toggles: Unknown ➔ ✕ (Cross) ➔ ⬤ (Match)",
@@ -820,6 +837,53 @@ fun WitnessStatementsCard(case: Case) {
                         lineHeight = 18.sp
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun WitnessStatementsCard(case: Case) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = CharcoalSurface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Default.Info, contentDescription = "Witness statements icon", tint = NoirAmber)
+                Text(
+                    text = "WITNESS STATEMENTS",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    color = NoirAmber
+                )
+            }
+
+            if (case.hasLiar) {
+                Text(
+                    text = "Exactly one witness may be lying. Use the statements with the physical clues.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = BloodRed,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Divider(color = Color(0x33B0BEC5))
+
+            case.statements.forEach { statement ->
+                Text(
+                    text = "${statement.speaker}: \"${statement.text}\"",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = SlateGrey,
+                    lineHeight = 18.sp
+                )
             }
         }
     }
