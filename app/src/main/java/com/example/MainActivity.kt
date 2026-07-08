@@ -16,9 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.ads.AdMobRewardedAdManager
 import com.example.ads.FakeRewardedAdManager
-import com.google.android.gms.ads.MobileAds
 import com.example.ui.DashboardScreen
 import com.example.ui.CasePlayScreen
 import com.example.ui.theme.MyApplicationTheme
@@ -34,14 +32,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
                 val navController = rememberNavController()
-                val activity = this@MainActivity
-                val rewardedAdManager = remember {
-                    if (BuildConfig.DEBUG) {
-                        FakeRewardedAdManager()
-                    } else {
-                        AdMobRewardedAdManager(activity)
-                    }
-                }
+                val rewardedAdManager = remember { FakeRewardedAdManager() }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
