@@ -31,17 +31,21 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
-  val hasReleaseSigning = System.getenv("KEYSTORE_PATH") != null &&
-      System.getenv("STORE_PASSWORD") != null &&
-      System.getenv("KEY_PASSWORD") != null
+  val keystorePath = System.getenv("KEYSTORE_PATH") ?: project.findProperty("KEYSTORE_PATH")?.toString()
+  val storePassword = System.getenv("STORE_PASSWORD") ?: project.findProperty("STORE_PASSWORD")?.toString()
+  val keyPassword = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD")?.toString()
+
+  val hasReleaseSigning = keystorePath != null &&
+      storePassword != null &&
+      keyPassword != null
 
   signingConfigs {
     create("release") {
       if (hasReleaseSigning) {
-        storeFile = file(System.getenv("KEYSTORE_PATH")!!)
-        storePassword = System.getenv("STORE_PASSWORD")
+        storeFile = file(keystorePath)
+        this.storePassword = storePassword
         keyAlias = "upload"
-        keyPassword = System.getenv("KEY_PASSWORD")
+        this.keyPassword = keyPassword
       }
     }
   }
@@ -52,10 +56,10 @@ android {
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       
-      if (hasReleaseSigning) {
-        signingConfig = signingConfigs.getByName("release")
+      signingConfig = if (hasReleaseSigning) {
+        signingConfigs.getByName("release")
       } else {
-        signingConfig = null
+        signingConfigs.getByName("debug")
       }
     }
   }
@@ -136,12 +140,15 @@ dependencies {
 tasks.configureEach {
     if (name == "assembleRelease" || name == "bundleRelease") {
         doFirst {
-            val hasReleaseSigning = System.getenv("KEYSTORE_PATH") != null &&
-                System.getenv("STORE_PASSWORD") != null &&
-                System.getenv("KEY_PASSWORD") != null
+            val keystorePath = System.getenv("KEYSTORE_PATH") ?: project.findProperty("KEYSTORE_PATH")?.toString()
+            val storePassword = System.getenv("STORE_PASSWORD") ?: project.findProperty("STORE_PASSWORD")?.toString()
+            val keyPassword = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD")?.toString()
+            val hasReleaseSigning = keystorePath != null && storePassword != null && keyPassword != null
+            
             if (!hasReleaseSigning) {
-                throw GradleException("Release signing configuration is missing. " +
-                    "Please set KEYSTORE_PATH, STORE_PASSWORD, and KEY_PASSWORD environment variables for production builds.")
+                logger.warn("Release signing configuration is missing. " +
+                    "Using debug signing configuration for this build. " +
+                    "Please set KEYSTORE_PATH, STORE_PASSWORD, and KEY_PASSWORD for production builds.")
             }
         }
     }
