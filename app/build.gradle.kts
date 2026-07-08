@@ -31,12 +31,14 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  val hasReleaseSigning = System.getenv("KEYSTORE_PATH") != null &&
+      System.getenv("STORE_PASSWORD") != null &&
+      System.getenv("KEY_PASSWORD") != null
+
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      val keystoreFile = file(keystorePath)
-      if (keystoreFile.exists()) {
-        storeFile = keystoreFile
+      if (hasReleaseSigning) {
+        storeFile = file(System.getenv("KEYSTORE_PATH")!!)
         storePassword = System.getenv("STORE_PASSWORD")
         keyAlias = "upload"
         keyPassword = System.getenv("KEY_PASSWORD")
@@ -50,11 +52,10 @@ android {
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       
-      val releaseSigningConfig = signingConfigs.getByName("release")
-      if (releaseSigningConfig.storeFile?.exists() == true) {
-        signingConfig = releaseSigningConfig
+      if (hasReleaseSigning) {
+        signingConfig = signingConfigs.getByName("release")
       } else {
-        signingConfig = signingConfigs.getByName("debug")
+        signingConfig = null
       }
     }
   }
@@ -130,4 +131,18 @@ dependencies {
   debugImplementation(libs.androidx.compose.ui.tooling)
   "ksp"(libs.androidx.room.compiler)
   "ksp"(libs.moshi.kotlin.codegen)
+}
+
+tasks.configureEach {
+    if (name == "assembleRelease" || name == "bundleRelease") {
+        doFirst {
+            val hasReleaseSigning = System.getenv("KEYSTORE_PATH") != null &&
+                System.getenv("STORE_PASSWORD") != null &&
+                System.getenv("KEY_PASSWORD") != null
+            if (!hasReleaseSigning) {
+                throw GradleException("Release signing configuration is missing. " +
+                    "Please set KEYSTORE_PATH, STORE_PASSWORD, and KEY_PASSWORD environment variables for production builds.")
+            }
+        }
+    }
 }

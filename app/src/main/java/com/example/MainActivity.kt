@@ -34,11 +34,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
                 val navController = rememberNavController()
+                val activity = this@MainActivity
                 val rewardedAdManager = remember {
                     if (BuildConfig.DEBUG) {
                         FakeRewardedAdManager()
                     } else {
-                        AdMobRewardedAdManager(this)
+                        AdMobRewardedAdManager(activity)
                     }
                 }
 
