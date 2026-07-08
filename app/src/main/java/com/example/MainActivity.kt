@@ -9,12 +9,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.ads.AdMobRewardedAdManager
+import com.example.ads.FakeRewardedAdManager
+import com.example.ads.RewardedAdManager
+import com.google.android.gms.ads.MobileAds
 import com.example.ui.DashboardScreen
 import com.example.ui.CasePlayScreen
 import com.example.ui.theme.MyApplicationTheme
@@ -26,9 +31,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        MobileAds.initialize(this)
         setContent {
             MyApplicationTheme {
                 val navController = rememberNavController()
+                val activity = this@MainActivity
+                val rewardedAdManager: RewardedAdManager = remember {
+                    if (BuildConfig.DEBUG) {
+                        FakeRewardedAdManager()
+                    } else {
+                        AdMobRewardedAdManager(activity)
+                    }
+                }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
@@ -59,7 +73,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateBack = {
                                     navController.popBackStack()
                                     viewModel.selectCase(null)
-                                }
+                                },
+                                rewardedAdManager = rewardedAdManager
                             )
                         }
                     }

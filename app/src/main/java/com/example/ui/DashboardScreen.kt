@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.Case
@@ -38,25 +39,15 @@ fun DashboardScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search icon",
-                            tint = NoirAmber
-                        )
-                        Text(
-                            text = "LOGIC DETECTIVE",
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.Bold,
-                            color = GridWhite,
-                            letterSpacing = 2.sp
-                        )
-                    }
+                    Text(
+                        text = "NOIR LOGIC",
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        color = NoirAmber,
+                        letterSpacing = 2.sp
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = CarbonDark
@@ -76,25 +67,22 @@ fun DashboardScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp, bottom = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = "Logic Detective",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = NoirAmber
-                )
                 Text(
                     text = "Open a file. Read the clues. Solve the case.",
                     style = MaterialTheme.typography.bodySmall,
                     color = SlateGrey,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center
                 )
                 Text(
                     text = "$totalSolved / ${cases.size} files solved",
                     style = MaterialTheme.typography.labelSmall,
                     color = MutedGrey,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center
                 )
             }
 
