@@ -16,11 +16,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.ads.AdMobRewardedAdManager
 import com.example.ads.FakeRewardedAdManager
 import com.example.ui.DashboardScreen
 import com.example.ui.CasePlayScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.DetectiveViewModel
+import com.google.android.gms.ads.MobileAds
 
 class MainActivity : ComponentActivity() {
     private val viewModel: DetectiveViewModel by viewModels()
@@ -32,7 +34,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
                 val navController = rememberNavController()
-                val rewardedAdManager = remember { FakeRewardedAdManager() }
+                val rewardedAdManager = remember {
+                    if (BuildConfig.DEBUG) {
+                        FakeRewardedAdManager()
+                    } else {
+                        AdMobRewardedAdManager(this)
+                    }
+                }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize()
