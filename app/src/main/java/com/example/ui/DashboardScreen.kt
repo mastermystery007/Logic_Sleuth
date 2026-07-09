@@ -42,7 +42,7 @@ fun DashboardScreen(
             CenterAlignedTopAppBar(
                 title = {
                     Text(
-                        text = "NOIR LOGIC",
+                        text = "DEDUCE IT",
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
                         color = NoirAmber,

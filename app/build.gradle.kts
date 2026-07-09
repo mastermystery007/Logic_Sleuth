@@ -11,7 +11,7 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.detectivegrid.qpxyz"
+    applicationId = "com.mysterybox.deduceit"
     minSdk = 24
     targetSdk = 36
     versionCode = 1
@@ -59,7 +59,7 @@ android {
       signingConfig = if (hasReleaseSigning) {
         signingConfigs.getByName("release")
       } else {
-        signingConfigs.getByName("debug")
+        null
       }
     }
   }
@@ -139,16 +139,17 @@ dependencies {
 
 tasks.configureEach {
     if (name == "assembleRelease" || name == "bundleRelease") {
+        val keystorePathConfig = System.getenv("KEYSTORE_PATH") ?: project.findProperty("KEYSTORE_PATH")?.toString()
+        val storePasswordConfig = System.getenv("STORE_PASSWORD") ?: project.findProperty("STORE_PASSWORD")?.toString()
+        val keyPasswordConfig = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD")?.toString()
+        val hasReleaseSigningConfig = keystorePathConfig != null && storePasswordConfig != null && keyPasswordConfig != null
+
         doFirst {
-            val keystorePath = System.getenv("KEYSTORE_PATH") ?: project.findProperty("KEYSTORE_PATH")?.toString()
-            val storePassword = System.getenv("STORE_PASSWORD") ?: project.findProperty("STORE_PASSWORD")?.toString()
-            val keyPassword = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD")?.toString()
-            val hasReleaseSigning = keystorePath != null && storePassword != null && keyPassword != null
-            
-            if (!hasReleaseSigning) {
-                logger.warn("Release signing configuration is missing. " +
-                    "Using debug signing configuration for this build. " +
-                    "Please set KEYSTORE_PATH, STORE_PASSWORD, and KEY_PASSWORD for production builds.")
+            if (!hasReleaseSigningConfig) {
+                throw GradleException(
+                    "Release signing configuration is missing. " +
+                    "Set KEYSTORE_PATH, STORE_PASSWORD, and KEY_PASSWORD before running assembleRelease or bundleRelease."
+                )
             }
         }
     }
