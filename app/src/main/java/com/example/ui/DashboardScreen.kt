@@ -31,6 +31,7 @@ import com.example.viewmodel.DetectiveViewModel
 fun DashboardScreen(
     viewModel: DetectiveViewModel,
     onNavigateToCase: (caseId: Int) -> Unit,
+    onOpenHowToPlay: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val completedIds by viewModel.completedCaseIds.collectAsState()
@@ -51,7 +52,19 @@ fun DashboardScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = CarbonDark
-                )
+                ),
+                actions = {
+                    IconButton(
+                        onClick = onOpenHowToPlay,
+                        modifier = Modifier.testTag("how_to_play_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.HelpOutline,
+                            contentDescription = "How to play",
+                            tint = NoirAmber
+                        )
+                    }
+                }
             )
         },
         containerColor = CarbonDark,
