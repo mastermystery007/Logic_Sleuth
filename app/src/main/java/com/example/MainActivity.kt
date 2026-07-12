@@ -49,13 +49,19 @@ class MainActivity : ComponentActivity() {
                 var showHowToPlay by remember {
                     mutableStateOf(!HowToPlayPreferences.hasSeenHowToPlay(activity))
                 }
+                var isFirstLaunchHowToPlay by remember {
+                    mutableStateOf(showHowToPlay)
+                }
 
                 if (showHowToPlay) {
                     HowToPlayScreen(
                         onComplete = {
-                            HowToPlayPreferences.markHowToPlaySeen(activity)
+                            if (isFirstLaunchHowToPlay) {
+                                HowToPlayPreferences.markHowToPlaySeen(activity)
+                            }
                             showHowToPlay = false
-                        }
+                        },
+                        isFirstLaunch = isFirstLaunchHowToPlay
                     )
                 } else {
                     Scaffold(
@@ -71,6 +77,10 @@ class MainActivity : ComponentActivity() {
                                     viewModel = viewModel,
                                     onNavigateToCase = { caseId ->
                                         navController.navigate("case_play/$caseId")
+                                    },
+                                    onOpenHowToPlay = {
+                                        isFirstLaunchHowToPlay = false
+                                        showHowToPlay = true
                                     }
                                 )
                             }
