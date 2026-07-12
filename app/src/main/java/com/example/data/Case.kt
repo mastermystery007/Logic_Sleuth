@@ -31,16 +31,16 @@ object CaseSeeds {
     val cases = listOf(
         Case(
             id = 1,
-            title = "The Bloodstained Study",
+            title = "The Silent Study",
             difficulty = "Easy",
-            story = "Lord Sterling was found dead in his study. The pristine mansion has fallen silent. The local constabulary has locked down three main suspects, weapons, and locations. Your job, Detective, is to examine the clues, fill out your logic grid, and state exactly who committed the murder, with what, and where.",
+            story = "Lord Sterling was found dead inside his private study at Sterling Manor. Investigators have identified three suspects, three possible weapons, and three relevant locations within the estate. Reconstruct each person’s movements and determine who killed Sterling, what weapon was used, and where the murder occurred.",
             suspects = listOf("Victor Hale", "Eleanor Voss", "Dr. Adrian Vale"),
             weapons = listOf("Antique Dagger", "Lead Pipe", "Poison Vial"),
             locations = listOf("Study", "Conservatory", "Library"),
             suspectDescriptions = mapOf(
-                "Victor Hale" to "A polished investor who had a bitter business dispute with Sterling. He claims he spent the evening near the conservatory.",
-                "Eleanor Voss" to "Sterling’s estranged sister and the main beneficiary of his estate. Calm, precise, and difficult to read.",
-                "Dr. Adrian Vale" to "Sterling’s private chemist, recently threatened with dismissal after a failed experiment."
+                "Victor Hale" to "A polished investor whose bitter business dispute with Sterling had recently turned personal.",
+                "Eleanor Voss" to "Sterling’s estranged sister and a beneficiary of his estate, outwardly composed despite years of family resentment.",
+                "Dr. Adrian Vale" to "A chemist employed by Sterling’s pharmaceutical company, recently threatened with dismissal after a costly experiment failed."
             ),
             weaponDescriptions = mapOf(
                 "Antique Dagger" to "An ornate medieval blade taken from the hallway display.",
@@ -48,7 +48,7 @@ object CaseSeeds {
                 "Poison Vial" to "A concentrated compound of deadly cyanide."
             ),
             locationDescriptions = mapOf(
-                "Study" to "The scene of the crime, filled with books and overturned furniture.",
+                "Study" to "Lord Sterling’s private study, its desk disturbed in what may have been an attempt to stage a struggle.",
                 "Conservatory" to "A warm glasshouse full of tropical ferns.",
                 "Library" to "A quiet sanctuary with a fireplace."
             ),
@@ -56,32 +56,32 @@ object CaseSeeds {
                 "The suspect in the Conservatory carried the Lead Pipe.",
                 "Victor Hale was not in the Study.",
                 "Dr. Adrian Vale had the Poison Vial.",
-                "Eleanor Voss was enjoying a book in the Library."
+                "Eleanor Voss was seen in the Library."
             ),
             hasLiar = false,
             solutionSuspect = "Dr. Adrian Vale",
             solutionWeapon = "Poison Vial",
             solutionLocation = "Study",
             solutionLiar = null,
-            murderExplanation = "Dr. Adrian Vale carried the Poison Vial and was in the Study. The coroner's report states Lord Sterling was dead from cyanide poisoning before any struggle took place. Dr. Adrian Vale committed the deed to save his chemical research!"
+            murderExplanation = "Dr. Adrian Vale carried the Poison Vial and was in the Study. The vial contained cyanide, and the disturbed desk suggested an attempted staging of a violent struggle after Sterling had already been poisoned. Vale killed Sterling because Sterling was ending his employment and terminating the research programme that had defined his career."
         ),
         Case(
             id = 2,
             title = "Whispers in the Observatory",
             difficulty = "Medium",
-            story = "A prominent astronomer was found dead under a collapsed telescope at the old high-altitude Observatory. There were signs of a struggle. Review the physical clues and the suspects' movements to expose the killer.",
+            story = "A prominent astronomer was found dead beside a collapsed telescope in an old mountaintop observatory. The observatory forms part of an isolated hilltop estate containing a chapel and an underground wine cellar. Investigators suspect that the damaged telescope was used to disguise an assault. Determine the culprit, weapon, and location.",
             suspects = listOf("Marcus Flint", "Selene Marlow", "Elias Crowe"),
-            weapons = listOf("Brass Knuckles", "Heavy Candelabra", "Rope Strand"),
+            weapons = listOf("Brass Knuckles", "Heavy Candelabra", "Length of Rope"),
             locations = listOf("Observatory", "Wine Cellar", "Gothic Chapel"),
             suspectDescriptions = mapOf(
                 "Marcus Flint" to "A retired officer with a violent temper and a long-standing grudge against the astronomer.",
-                "Selene Marlow" to "A theatrical fortune teller whose predictions were about to be exposed as fraud.",
+                "Selene Marlow" to "A celebrated astrologer and fortune teller whose fabricated celestial predictions were about to be publicly exposed by the victim.",
                 "Elias Crowe" to "A politician whose career could have been destroyed by the astronomer’s private records."
             ),
             weaponDescriptions = mapOf(
                 "Brass Knuckles" to "Solid metal knuckles stamped with a military insignia.",
                 "Heavy Candelabra" to "An iron candleholder, dented on one side.",
-                "Rope Strand" to "A coarse hemp rope used to hang heavy tapestries."
+                "Length of Rope" to "A coarse hemp rope used to hang heavy tapestries."
             ),
             locationDescriptions = mapOf(
                 "Observatory" to "The dome room containing the star charts and telescope.",
@@ -91,33 +91,33 @@ object CaseSeeds {
             clues = listOf(
                 "Elias Crowe was in the Gothic Chapel.",
                 "The Brass Knuckles were not in the Observatory.",
-                "Marcus Flint did not carry the Rope Strand.",
-                "The Rope Strand was found in the Gothic Chapel.",
-                "Selene Marlow was seen near the telescope in the Observatory."
+                "Marcus Flint did not carry the Length of Rope.",
+                "The Length of Rope was found in the Gothic Chapel.",
+                "Selene Marlow was seen entering the Observatory shortly before the astronomer’s death."
             ),
             hasLiar = false,
             solutionSuspect = "Selene Marlow",
             solutionWeapon = "Heavy Candelabra",
             solutionLocation = "Observatory",
             solutionLiar = null,
-            murderExplanation = "Selene Marlow was in the Observatory with the Heavy Candelabra. Forensic evidence proved the astronomer died of severe blunt-force trauma corresponding exactly to the iron candelabra. Selene Marlow silenced him to prevent her psychic fraud from being exposed!"
+            murderExplanation = "Selene Marlow was in the Observatory with the Heavy Candelabra. The astronomer’s injuries matched the candelabra rather than the telescope, and Selene damaged the telescope to make the death appear accidental. Her motive was to prevent the public exposure of her fraudulent predictions."
         ),
         Case(
             id = 3,
-            title = "Intermission in the Ballroom",
+            title = "The Silent Finale",
             difficulty = "Medium",
-            story = "The conductor took a bow and fell dead. Exactly ONE of the suspects is lying during interrogation to mask their guilt. Cross-examine their claims, check the verified physical clues, and expose the liar!",
+            story = "During a private musical gala at Blackwell Manor, the conductor collapsed as the orchestra reached its final note. The manor’s ballroom, billiard room, and attic were sealed immediately. Exactly one suspect is lying, while the other two statements are true. Reconstruct the evidence and identify the killer, weapon, location, and false witness.",
             suspects = listOf("Helena Blackwell", "Rowan Pierce", "Conrad Ashford"),
-            weapons = listOf("Rusty Saber", "Silenced Gun", "Poisoned Wine"),
+            weapons = listOf("Rusty Saber", "Suppressed Pistol", "Poisoned Wine"),
             locations = listOf("Ballroom", "Billiard Room", "Secret Attic"),
             suspectDescriptions = mapOf(
-                "Helena Blackwell" to "A wealthy patron of the theatre who says she spent the evening in the billiard room.",
-                "Rowan Pierce" to "A decorated former naval officer with a hidden connection to the conductor.",
-                "Conrad Ashford" to "An industrialist who had threatened to shut the theatre down."
+                "Helena Blackwell" to "A wealthy patron whose financial support kept the orchestra operating—and whose private arrangement with the conductor was close to becoming public.",
+                "Rowan Pierce" to "A decorated former naval officer who blamed the conductor for exposing an incident that ended his military career.",
+                "Conrad Ashford" to "An industrialist locked in a bitter ownership dispute with the conductor over the future of the venue."
             ),
             weaponDescriptions = mapOf(
                 "Rusty Saber" to "A ceremonial sword taken from the theatre trophy wall.",
-                "Silenced Gun" to "A quiet 9mm pistol equipped with a sound suppressor.",
+                "Suppressed Pistol" to "A quiet 9mm pistol equipped with a sound suppressor.",
                 "Poisoned Wine" to "A goblet of expensive vintage spiked with belladonna."
             ),
             locationDescriptions = mapOf(
@@ -129,7 +129,7 @@ object CaseSeeds {
                 "TWIST: Exactly ONE suspect is lying, and the other two are telling the truth.",
                 "The Rusty Saber was found in the Secret Attic.",
                 "Rowan Pierce was definitely in the Ballroom.",
-                "The suspect in the Billiard Room did not have the Silenced Gun."
+                "The suspect in the Billiard Room did not have the Suppressed Pistol."
             ),
             hasLiar = true,
             statements = listOf(
@@ -138,42 +138,43 @@ object CaseSeeds {
                 Statement("Conrad Ashford", "I had the Poisoned Wine in the Secret Attic.", isLie = true)
             ),
             solutionSuspect = "Rowan Pierce",
-            solutionWeapon = "Silenced Gun",
+            solutionWeapon = "Suppressed Pistol",
             solutionLocation = "Ballroom",
             solutionLiar = "Conrad Ashford",
-            murderExplanation = "Helena Blackwell is in the Billiard Room (True) and Rowan Pierce is in the Ballroom (True). Since the Rusty Saber was in the Secret Attic, Conrad Ashford (in the Attic) had the Rusty Saber. Therefore, Conrad Ashford's statement that he had the Poisoned Wine is the LIE. Since Helena Blackwell did not have the Silenced Gun, she must have had the Poisoned Wine in the Billiard Room. That leaves Rowan Pierce in the Ballroom with the Silenced Gun. The conductor was shot silently during the opera's climax by Rowan Pierce!"
+            murderExplanation = "Helena Blackwell is in the Billiard Room, and Rowan Pierce is in the Ballroom. The Rusty Saber was found in the Secret Attic, so Conrad Ashford was there with the saber. Conrad’s claim that he had the Poisoned Wine is the single lie. Helena therefore has the Poisoned Wine, leaving Rowan with the Suppressed Pistol in the Ballroom. Rowan fired during the final surge of music, masking the sound."
         ),
         Case(
             id = 4,
-            title = "The Poisoned Antique",
+            title = "The Curator’s Last Exhibit",
             difficulty = "Hard",
-            story = "The curator's secure vault was entered, and a prized urn was contaminated with a deadly aerosol toxin. One of his close associates is lying during the investigation. Crack the grid, spot the liar, and make your accusation!",
+            story = "Museum curator Alistair Wren was found dead in the institution’s greenhouse shortly after a security alarm was triggered in the Antique Vault. A nearly invisible puncture wound suggests that his death was no accident. Exactly one of the three suspects has given a false statement. Reconstruct their movements, identify the liar, and determine who killed the curator, with what weapon, and where.",
             suspects = listOf("Garrett Thorne", "Dr. Mira Elgin", "Rosalie Crane"),
             weapons = listOf("Chloroform Rag", "Poison Dart", "Pocket Knife"),
             locations = listOf("Antique Vault", "Greenhouse", "Trophy Room"),
             suspectDescriptions = mapOf(
-                "Garrett Thorne" to "A retired military archivist whose finances collapsed after a failed auction.",
-                "Dr. Mira Elgin" to "A museum researcher with access to restricted catalogs and preservation chemicals.",
-                "Rosalie Crane" to "A major donor whose promised gift depended on controlling the curator’s next exhibit."
+                "Garrett Thorne" to "A retired military archivist who claimed that one of the museum’s prized acquisitions had been taken from his family. A failed legal challenge left him heavily in debt.",
+                "Dr. Mira Elgin" to "The museum’s conservation chemist, with authorised access to restricted storage rooms, preservation compounds, and the curator’s private research files.",
+                "Rosalie Crane" to "A wealthy donor who demanded that the museum authenticate and display her family’s collection. The curator had recently uncovered evidence that several pieces were fraudulent."
             ),
             weaponDescriptions = mapOf(
-                "Chloroform Rag" to "A cloth soaked in strong anesthetic vapors.",
-                "Poison Dart" to "A tiny needle tipped with virulent exotic plant venom.",
-                "Pocket Knife" to "A folding bone-handled blade stained with grease."
+                "Chloroform Rag" to "A folded cloth saturated with chloroform.",
+                "Poison Dart" to "A small blowgun dart coated with a fast-acting toxin derived from plants cultivated in the museum greenhouse.",
+                "Pocket Knife" to "A bone-handled folding knife recently used to cut through the Antique Vault’s security seal."
             ),
             locationDescriptions = mapOf(
-                "Antique Vault" to "The double-locked high security chamber.",
-                "Greenhouse" to "A humid glasshouse filled with poisonous and exotic plants.",
-                "Trophy Room" to "A display hall lined with hunting trophies and old catalogs."
+                "Antique Vault" to "A climate-controlled chamber protected by an electronic security seal.",
+                "Greenhouse" to "A humid glasshouse containing rare medicinal and poisonous plants.",
+                "Trophy Room" to "A private exhibition room lined with hunting trophies and archived acquisition records."
             ),
             clues = listOf(
-                "TWIST: Exactly ONE suspect is lying, and the other two are telling the truth.",
+                "TWIST: Exactly one suspect is lying, and the other two are telling the truth.",
                 "The Pocket Knife was found in the Antique Vault.",
-                "Dr. Mira Elgin was officially stationed in the Trophy Room."
+                "Security records place Dr. Mira Elgin in the Trophy Room.",
+                "Garrett Thorne was confirmed to be inside the Antique Vault."
             ),
             hasLiar = true,
             statements = listOf(
-                Statement("Garrett Thorne", "I had the Pocket Knife.", isLie = false),
+                Statement("Garrett Thorne", "I was carrying the Pocket Knife.", isLie = false),
                 Statement("Dr. Mira Elgin", "Garrett Thorne was in the Greenhouse.", isLie = true),
                 Statement("Rosalie Crane", "The Chloroform Rag was in the Trophy Room.", isLie = false)
             ),
@@ -181,7 +182,7 @@ object CaseSeeds {
             solutionWeapon = "Poison Dart",
             solutionLocation = "Greenhouse",
             solutionLiar = "Dr. Mira Elgin",
-            murderExplanation = "Garrett Thorne had the Pocket Knife (True). Since the Pocket Knife was in the Antique Vault, Garrett Thorne was in the Antique Vault. This proves Dr. Mira Elgin lied by claiming Garrett Thorne was in the Greenhouse! Rosalie Crane told the truth (Chloroform Rag was in the Trophy Room). Since Dr. Mira Elgin was in the Trophy Room, Dr. Mira Elgin had the Chloroform Rag. This leaves Rosalie Crane in the Greenhouse with the Poison Dart. The collector suffered a sudden, silent puncture wound from Rosalie Crane using the Poison Dart!"
+            murderExplanation = "Garrett Thorne was carrying the Pocket Knife, and the knife was found in the Antique Vault, confirming that Garrett was there. Dr. Mira Elgin’s claim that Garrett was in the Greenhouse is therefore the single false statement. Security records place Mira in the Trophy Room, and Rosalie truthfully identified the Chloroform Rag there, so Mira possessed it. That leaves Rosalie Crane in the Greenhouse with the Poison Dart. The dart’s toxin came from plants cultivated in the greenhouse. Rosalie killed Curator Alistair Wren before he could expose the fraudulent pieces in her family’s collection."
         )
     )
 }
