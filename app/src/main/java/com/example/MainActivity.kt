@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -20,6 +23,7 @@ import com.example.ads.AdMobRewardedAdManager
 import com.example.ads.FakeRewardedAdManager
 import com.example.ui.DashboardScreen
 import com.example.ui.CasePlayScreen
+import com.example.ui.HowToPlayScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.DetectiveViewModel
 import com.google.android.gms.ads.MobileAds
@@ -42,39 +46,61 @@ class MainActivity : ComponentActivity() {
                         AdMobRewardedAdManager(activity)
                     }
                 }
+                var showHowToPlay by remember {
+                    mutableStateOf(!HowToPlayPreferences.hasSeenHowToPlay(activity))
+                }
+                var isFirstLaunchHowToPlay by remember {
+                    mutableStateOf(showHowToPlay)
+                }
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
-                    NavHost(
-                        navController = navController,
-                        startDestination = "dashboard",
-                        modifier = Modifier.padding(innerPadding)
-                    ) {
-                        composable("dashboard") {
-                            DashboardScreen(
-                                viewModel = viewModel,
-                                onNavigateToCase = { caseId ->
-                                    navController.navigate("case_play/$caseId")
-                                }
-                            )
-                        }
-                        composable(
-                            route = "case_play/{caseId}",
-                            arguments = listOf(navArgument("caseId") { type = NavType.IntType })
-                        ) { backStackEntry ->
-                            val caseId = backStackEntry.arguments?.getInt("caseId")
-                            LaunchedEffect(caseId) {
-                                viewModel.selectCase(caseId)
+                if (showHowToPlay) {
+                    HowToPlayScreen(
+                        onComplete = {
+                            if (isFirstLaunchHowToPlay) {
+                                HowToPlayPreferences.markHowToPlaySeen(activity)
                             }
-                            CasePlayScreen(
-                                viewModel = viewModel,
-                                onNavigateBack = {
-                                    navController.popBackStack()
-                                    viewModel.selectCase(null)
-                                },
-                                rewardedAdManager = rewardedAdManager
-                            )
+                            showHowToPlay = false
+                        },
+                        isFirstLaunch = isFirstLaunchHowToPlay
+                    )
+                } else {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize()
+                    ) { innerPadding ->
+                        NavHost(
+                            navController = navController,
+                            startDestination = "dashboard",
+                            modifier = Modifier.padding(innerPadding)
+                        ) {
+                            composable("dashboard") {
+                                DashboardScreen(
+                                    viewModel = viewModel,
+                                    onNavigateToCase = { caseId ->
+                                        navController.navigate("case_play/$caseId")
+                                    },
+                                    onOpenHowToPlay = {
+                                        isFirstLaunchHowToPlay = false
+                                        showHowToPlay = true
+                                    }
+                                )
+                            }
+                            composable(
+                                route = "case_play/{caseId}",
+                                arguments = listOf(navArgument("caseId") { type = NavType.IntType })
+                            ) { backStackEntry ->
+                                val caseId = backStackEntry.arguments?.getInt("caseId")
+                                LaunchedEffect(caseId) {
+                                    viewModel.selectCase(caseId)
+                                }
+                                CasePlayScreen(
+                                    viewModel = viewModel,
+                                    onNavigateBack = {
+                                        navController.popBackStack()
+                                        viewModel.selectCase(null)
+                                    },
+                                    rewardedAdManager = rewardedAdManager
+                                )
+                            }
                         }
                     }
                 }
