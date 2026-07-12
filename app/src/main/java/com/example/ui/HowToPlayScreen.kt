@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
@@ -48,18 +47,6 @@ fun HowToPlayScreen(
             .windowInsetsPadding(WindowInsets.safeDrawing)
             .testTag("how_to_play_root")
     ) {
-        if (!isFirstLaunch) {
-            IconButton(
-                onClick = onComplete,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(10.dp)
-                    .testTag("close_how_to_play_icon")
-            ) {
-                Icon(Icons.Filled.Close, contentDescription = "Close how to play", tint = NoirAmber)
-            }
-        }
-
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -71,6 +58,19 @@ fun HowToPlayScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
+            if (!isFirstLaunch) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(
+                        onClick = onComplete,
+                        modifier = Modifier.testTag("close_how_to_play_icon")
+                    ) {
+                        Icon(Icons.Filled.Close, contentDescription = "Close how to play", tint = NoirAmber)
+                    }
+                }
+            }
             TutorialHeader()
             TutorialStep(
                 title = "1. READ THE CASE FILE",

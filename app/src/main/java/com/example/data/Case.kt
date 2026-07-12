@@ -126,7 +126,7 @@ object CaseSeeds {
                 "Secret Attic" to "A dusty loft above the stage filled with old props."
             ),
             clues = listOf(
-                "TWIST: Exactly ONE suspect is lying, and the other two are telling the truth.",
+                "TWIST: Exactly one suspect is lying, and the other two are telling the truth.",
                 "The Rusty Saber was found in the Secret Attic.",
                 "Rowan Pierce was definitely in the Ballroom.",
                 "The suspect in the Billiard Room did not have the Suppressed Pistol."
