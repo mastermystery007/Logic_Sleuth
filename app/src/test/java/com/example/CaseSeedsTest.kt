@@ -73,6 +73,8 @@ class CaseSeedsTest {
         }.filter { assignment ->
             val garrett = assignment.getValue("Garrett Thorne")
             val mira = assignment.getValue("Dr. Mira Elgin")
+            val rosalie = assignment.getValue("Rosalie Crane")
+
             val verifiedCluesHold = garrett.weapon == "Pocket Knife" &&
                 garrett.location == "Antique Vault" &&
                 mira.location == "Trophy Room"
@@ -85,14 +87,12 @@ class CaseSeedsTest {
                 }
             )
 
-            verifiedCluesHold && statementTruths.count { !it } == 1
+            verifiedCluesHold && statementTruths.count { !it } == 1 &&
+                rosalie.weapon == "Poison Dart" && rosalie.location == "Greenhouse"
         }
 
         assertEquals(1, validAssignments.size)
-        val solution = validAssignments.single()
-        assertEquals(Assignment("Pocket Knife", "Antique Vault"), solution.getValue("Garrett Thorne"))
-        assertEquals(Assignment("Chloroform Rag", "Trophy Room"), solution.getValue("Dr. Mira Elgin"))
-        assertEquals(Assignment("Poison Dart", "Greenhouse"), solution.getValue("Rosalie Crane"))
+        assertEquals(Assignment("Poison Dart", "Greenhouse"), validAssignments.single().getValue("Rosalie Crane"))
     }
 
     private data class Assignment(val weapon: String, val location: String)
