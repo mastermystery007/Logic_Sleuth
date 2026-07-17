@@ -63,7 +63,19 @@ object CaseSeeds {
             solutionWeapon = "Poison Vial",
             solutionLocation = "Study",
             solutionLiar = null,
-            murderExplanation = "Dr. Adrian Vale carried the Poison Vial and was in the Study. The vial contained cyanide, and the disturbed desk suggested an attempted staging of a violent struggle after Sterling had already been poisoned. Vale killed Sterling because Sterling was ending his employment and terminating the research programme that had defined his career."
+            murderExplanation = """
+                1. Eleanor Voss was seen in the Library, so her location is fixed immediately.
+
+                2. Victor Hale was not in the Study. With the Library already occupied by Eleanor, Victor must therefore have been in the Conservatory.
+
+                3. The Conservatory suspect carried the Lead Pipe, so Victor Hale had the Lead Pipe.
+
+                4. Dr. Adrian Vale is explicitly linked to the Poison Vial. The only unassigned location is now the Study, placing Vale there with the poison. Eleanor is left with the Antique Dagger.
+
+                5. The final arrangement is Victor Hale — Lead Pipe — Conservatory; Eleanor Voss — Antique Dagger — Library; and Dr. Adrian Vale — Poison Vial — Study.
+
+                CONCLUSION: Dr. Adrian Vale killed Lord Sterling in the Study with the Poison Vial. The vial contained cyanide, while the disturbed desk was an attempt to make the death look like a violent struggle. Vale’s motive was Sterling’s decision to dismiss him and terminate the research programme that had defined his career.
+            """.trimIndent()
         ),
         Case(
             id = 2,
@@ -100,7 +112,21 @@ object CaseSeeds {
             solutionWeapon = "Heavy Candelabra",
             solutionLocation = "Observatory",
             solutionLiar = null,
-            murderExplanation = "Selene Marlow was in the Observatory with the Heavy Candelabra. The astronomer’s injuries matched the candelabra rather than the telescope, and Selene damaged the telescope to make the death appear accidental. Her motive was to prevent the public exposure of her fraudulent predictions."
+            murderExplanation = """
+                1. Elias Crowe was in the Gothic Chapel, fixing his location.
+
+                2. The Length of Rope was also in the Gothic Chapel. Because each location contains one suspect and one weapon, Elias Crowe must have carried the Length of Rope.
+
+                3. Selene Marlow was seen entering the Observatory shortly before the death, fixing her location there.
+
+                4. The only location left for Marcus Flint is the Wine Cellar.
+
+                5. The Brass Knuckles were not in the Observatory, so Selene could not have carried them. Elias already has the rope, leaving the Heavy Candelabra for Selene and the Brass Knuckles for Marcus.
+
+                6. The final arrangement is Marcus Flint — Brass Knuckles — Wine Cellar; Elias Crowe — Length of Rope — Gothic Chapel; and Selene Marlow — Heavy Candelabra — Observatory.
+
+                CONCLUSION: Selene Marlow killed the astronomer in the Observatory with the Heavy Candelabra. The injuries matched the dented candelabra rather than the telescope. Selene then damaged the telescope to stage an accident and prevent the astronomer from exposing her fraudulent predictions.
+            """.trimIndent()
         ),
         Case(
             id = 3,
@@ -141,7 +167,23 @@ object CaseSeeds {
             solutionWeapon = "Suppressed Pistol",
             solutionLocation = "Ballroom",
             solutionLiar = "Conrad Ashford",
-            murderExplanation = "Helena Blackwell is in the Billiard Room, and Rowan Pierce is in the Ballroom. The Rusty Saber was found in the Secret Attic, so Conrad Ashford was there with the saber. Conrad’s claim that he had the Poisoned Wine is the single lie. Helena therefore has the Poisoned Wine, leaving Rowan with the Suppressed Pistol in the Ballroom. Rowan fired during the final surge of music, masking the sound."
+            murderExplanation = """
+                1. Rowan Pierce was definitely in the Ballroom, so the Billiard Room and Secret Attic must belong to Helena Blackwell and Conrad Ashford.
+
+                2. The Rusty Saber was in the Secret Attic. Therefore, whoever occupied the attic also possessed the saber.
+
+                3. Rowan stated that Helena did not have the Rusty Saber. If Rowan were lying, Helena would have the saber and would therefore be in the Secret Attic. Helena’s own statement that she was in the Billiard Room would then also be false, producing two liars. The case allows exactly one liar, so Rowan’s statement must be true.
+
+                4. Helena therefore did not have the saber and could not have been in the Secret Attic. She was in the Billiard Room, making her statement true. Conrad Ashford was consequently in the Secret Attic with the Rusty Saber.
+
+                5. Conrad claimed that he had the Poisoned Wine in the Secret Attic. The attic weapon is already fixed as the Rusty Saber, so Conrad’s statement is false. Conrad is the single liar.
+
+                6. The Billiard Room suspect did not have the Suppressed Pistol. Helena was in that room and did not have the saber, so she must have had the Poisoned Wine. The only weapon left for Rowan is the Suppressed Pistol.
+
+                7. The final arrangement is Helena Blackwell — Poisoned Wine — Billiard Room; Conrad Ashford — Rusty Saber — Secret Attic; and Rowan Pierce — Suppressed Pistol — Ballroom. The false witness is Conrad Ashford.
+
+                CONCLUSION: Rowan Pierce killed the conductor in the Ballroom with the Suppressed Pistol. He fired during the orchestra’s final surge, using the music and the suppressor to conceal the shot. His motive was revenge for the disclosure that ended his naval career.
+            """.trimIndent()
         ),
         Case(
             id = 4,
@@ -182,7 +224,21 @@ object CaseSeeds {
             solutionWeapon = "Poison Dart",
             solutionLocation = "Greenhouse",
             solutionLiar = "Dr. Mira Elgin",
-            murderExplanation = "Garrett Thorne was carrying the Pocket Knife, and the knife was found in the Antique Vault, confirming that Garrett was there. Dr. Mira Elgin’s claim that Garrett was in the Greenhouse is therefore the single false statement. Security records place Mira in the Trophy Room, and Rosalie truthfully identified the Chloroform Rag there, so Mira possessed it. That leaves Rosalie Crane in the Greenhouse with the Poison Dart. The dart’s toxin came from plants cultivated in the greenhouse. Rosalie killed Curator Alistair Wren before he could expose the fraudulent pieces in her family’s collection."
+            murderExplanation = """
+                1. Garrett Thorne was confirmed inside the Antique Vault, fixing his location.
+
+                2. The Pocket Knife was found in the Antique Vault. Because each location contains one suspect and one weapon, Garrett must have carried the Pocket Knife. His statement is therefore true.
+
+                3. Dr. Mira Elgin claimed that Garrett was in the Greenhouse. This directly contradicts the verified record placing him in the Antique Vault, so Mira’s statement is false. Since exactly one suspect is lying, Mira is the false witness and Rosalie Crane’s statement must be true.
+
+                4. Security records place Mira in the Trophy Room. Rosalie truthfully stated that the Chloroform Rag was in the Trophy Room, so Mira possessed the Chloroform Rag.
+
+                5. Garrett occupies the Antique Vault with the Pocket Knife, and Mira occupies the Trophy Room with the Chloroform Rag. The only suspect, weapon, and location left are Rosalie Crane, the Poison Dart, and the Greenhouse.
+
+                6. The final arrangement is Garrett Thorne — Pocket Knife — Antique Vault; Dr. Mira Elgin — Chloroform Rag — Trophy Room; and Rosalie Crane — Poison Dart — Greenhouse. The false witness is Dr. Mira Elgin.
+
+                CONCLUSION: Rosalie Crane killed Curator Alistair Wren in the Greenhouse with the Poison Dart. The nearly invisible puncture wound matches the dart, and its fast-acting toxin came from plants cultivated in the greenhouse. Rosalie’s motive was to stop Wren from exposing the fraudulent pieces in her family’s collection.
+            """.trimIndent()
         )
     )
 }
