@@ -10,7 +10,6 @@ import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 
 enum class RewardedAdPurpose {
-    CHECK_ANSWER,
     REVEAL_LIAR,
     REVEAL_SOLUTION
 }
@@ -78,8 +77,6 @@ class AdMobRewardedAdManager(
         if (rewardedAds[purpose] != null || !loadingPurposes.add(purpose)) return
 
         val adUnitId = when (purpose) {
-            // With two production units, answer checks share the full-solution placement.
-            RewardedAdPurpose.CHECK_ANSWER -> BuildConfig.ADMOB_REWARDED_CHECK_ANSWER_ID
             RewardedAdPurpose.REVEAL_LIAR -> BuildConfig.ADMOB_REWARDED_REVEAL_LIAR_ID
             RewardedAdPurpose.REVEAL_SOLUTION -> BuildConfig.ADMOB_REWARDED_REVEAL_SOLUTION_ID
         }
