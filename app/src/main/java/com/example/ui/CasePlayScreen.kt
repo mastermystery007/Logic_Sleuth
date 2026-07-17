@@ -51,7 +51,7 @@ fun CasePlayScreen(
     // Return early if no case selected
     val activeCase = case ?: return
 
-    var activeTab by remember { mutableStateOf("Cast") }
+    var activeTab by remember { mutableStateOf("Dossier") }
     var focusedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showExplanationDialog by remember { mutableStateOf(false) }
     var revealedLiar by rememberSaveable(activeCase.id) { mutableStateOf<String?>(null) }
@@ -195,7 +195,7 @@ fun CasePlayScreen(
             }
 
             // Tab bar for gameplay modes
-            val tabs = listOf("Cast", "Dossier", "Logic Grid", "Deduce")
+            val tabs = listOf("Dossier", "Cast", "Logic Grid", "Deduce")
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
