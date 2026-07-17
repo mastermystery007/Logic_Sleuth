@@ -54,7 +54,6 @@ fun CasePlayScreen(
     var focusedCell by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     var showExplanationDialog by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(accusationResult) {
         if (accusationResult == AccusationResult.Success) {
             showExplanationDialog = true
@@ -88,7 +87,7 @@ fun CasePlayScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = "Back back arrow",
+                            contentDescription = "Back",
                             tint = GridWhite
                         )
                     }
@@ -176,7 +175,7 @@ fun CasePlayScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Case Solved Checked",
+                            contentDescription = "Case solved",
                             tint = ClueGreen,
                             modifier = Modifier.size(20.dp)
                         )
@@ -280,7 +279,12 @@ fun CasePlayScreen(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 520.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Text(
                         text = "Your deduction matches the evidence.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -305,14 +309,6 @@ fun CasePlayScreen(
                     }
 
                     Divider(color = Color(0x33B0BEC5))
-
-                    Text(
-                        text = "CASE EXPLANATION",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = NoirAmber,
-                        fontWeight = FontWeight.Bold
-                    )
 
                     Text(
                         text = "CASE EXPLANATION",
@@ -1001,7 +997,7 @@ fun AccusationTab(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Gavel,
-                        contentDescription = "Accusation Gavel",
+                        contentDescription = "Final accusation",
                         tint = BloodRed
                     )
                     Text(
@@ -1206,78 +1202,78 @@ fun AccusationTab(
 
                 // Results banner
                 when (accusationResult) {
-                     is AccusationResult.Success -> {
-                         Box(
-                             modifier = Modifier
-                                 .fillMaxWidth()
-                                 .clip(RoundedCornerShape(8.dp))
-                                 .background(ClueGreen.copy(alpha = 0.15f))
-                                 .border(1.dp, ClueGreen, RoundedCornerShape(8.dp))
-                                 .padding(12.dp)
-                         ) {
-                             Row(
-                                 verticalAlignment = Alignment.CenterVertically,
-                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
-                             ) {
-                                 Icon(Icons.Default.CheckCircle, contentDescription = "Success check", tint = ClueGreen)
-                                 Text(
-                                     text = "CASE CLOSED. Outstanding work, Detective. Tap the button below to review the case file.",
-                                     color = ClueGreen,
-                                     style = MaterialTheme.typography.bodySmall,
-                                     fontWeight = FontWeight.Bold
-                                 )
-                             }
-                         }
-                     }
-                     is AccusationResult.Failure -> {
-                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                             Box(
-                                 modifier = Modifier
-                                     .fillMaxWidth()
-                                     .clip(RoundedCornerShape(8.dp))
-                                     .background(BloodRed.copy(alpha = 0.15f))
-                                     .border(1.dp, BloodRed, RoundedCornerShape(8.dp))
-                                     .padding(12.dp)
-                             ) {
-                                 Row(
-                                     verticalAlignment = Alignment.CenterVertically,
-                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                 ) {
-                                     Icon(Icons.Default.Cancel, contentDescription = "Failure cross icon", tint = BloodRed)
-                                     Text(
-                                         text = "ACCUSATION NOT PROVEN. That combination does not match the clues. Keep searching the grid!",
-                                         color = BloodRed,
-                                         style = MaterialTheme.typography.bodySmall,
-                                         fontWeight = FontWeight.Bold
-                                     )
-                                 }
-                             }
+                    is AccusationResult.Success -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(ClueGreen.copy(alpha = 0.15f))
+                                .border(1.dp, ClueGreen, RoundedCornerShape(8.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = "Success check", tint = ClueGreen)
+                                Text(
+                                    text = "CASE CLOSED. Outstanding work, Detective. Tap the button below to review the case file.",
+                                    color = ClueGreen,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                    is AccusationResult.Failure -> {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(BloodRed.copy(alpha = 0.15f))
+                                    .border(1.dp, BloodRed, RoundedCornerShape(8.dp))
+                                    .padding(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(Icons.Default.Cancel, contentDescription = "Failure cross icon", tint = BloodRed)
+                                    Text(
+                                        text = "ACCUSATION NOT PROVEN. That combination does not match the clues. Keep searching the grid!",
+                                        color = BloodRed,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
 
-                             Button(
-                                 onClick = {
-                                     rewardedAdManager.showRewardedAd(
-                                         purpose = RewardedAdPurpose.REVEAL_SOLUTION,
-                                         onRewardEarned = { showRevealDialog = true }
-                                     )
-                                 },
-                                 colors = ButtonDefaults.buttonColors(containerColor = NoirAmber),
-                                 modifier = Modifier
-                                     .fillMaxWidth()
-                                     .testTag("reveal_solution_button"),
-                                 shape = RoundedCornerShape(8.dp)
-                             ) {
-                                 Icon(Icons.Default.Visibility, contentDescription = "Reveal solution icon", tint = Color.Black)
-                                 Spacer(modifier = Modifier.width(8.dp))
-                                 Text(
-                                     text = "WATCH AD TO SEE CORRECT ANSWER",
-                                     color = Color.Black,
-                                     fontWeight = FontWeight.Bold,
-                                     fontFamily = FontFamily.Monospace
-                                 )
-                             }
-                         }
-                     }
-                     else -> {}
+                            Button(
+                                onClick = {
+                                    rewardedAdManager.showRewardedAd(
+                                        purpose = RewardedAdPurpose.REVEAL_SOLUTION,
+                                        onRewardEarned = { showRevealDialog = true }
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = NoirAmber),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("reveal_solution_button"),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(Icons.Default.Visibility, contentDescription = "Reveal solution icon", tint = Color.Black)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "WATCH AD TO REVEAL FULL SOLUTION",
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                        }
+                    }
+                    else -> {}
                 }
 
                 Row(
@@ -1285,12 +1281,7 @@ fun AccusationTab(
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
-                        onClick = {
-                            rewardedAdManager.showRewardedAd(
-                                purpose = RewardedAdPurpose.CHECK_ANSWER,
-                                onRewardEarned = { viewModel.makeAccusation() }
-                            )
-                        },
+                        onClick = { viewModel.makeAccusation() },
                         colors = ButtonDefaults.buttonColors(containerColor = BloodRed),
                         modifier = Modifier
                             .weight(1f)
@@ -1298,9 +1289,9 @@ fun AccusationTab(
                         shape = RoundedCornerShape(8.dp),
                         enabled = chosenSuspect.isNotEmpty() && chosenWeapon.isNotEmpty() && chosenLocation.isNotEmpty() && (!case.hasLiar || chosenLiar.isNotEmpty())
                     ) {
-                        Icon(Icons.Default.Gavel, contentDescription = "Gavel symbol", tint = Color.White)
+                        Icon(Icons.Default.Gavel, contentDescription = "Check answer", tint = Color.White)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("WATCH AD TO CHECK ANSWER", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text("CHECK ANSWER", color = Color.White, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
                     }
 
                     if (isCaseCompleted) {
@@ -1332,7 +1323,12 @@ fun AccusationTab(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 520.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = SlateCard),
                         shape = RoundedCornerShape(8.dp)
