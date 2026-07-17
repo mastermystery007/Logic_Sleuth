@@ -32,6 +32,8 @@ fun DashboardScreen(
     viewModel: DetectiveViewModel,
     onNavigateToCase: (caseId: Int) -> Unit,
     onOpenHowToPlay: () -> Unit,
+    showPrivacyOptions: Boolean = false,
+    onOpenPrivacyOptions: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val completedIds by viewModel.completedCaseIds.collectAsState()
@@ -54,6 +56,18 @@ fun DashboardScreen(
                     containerColor = CarbonDark
                 ),
                 actions = {
+                    if (showPrivacyOptions) {
+                        IconButton(
+                            onClick = onOpenPrivacyOptions,
+                            modifier = Modifier.testTag("privacy_options_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PrivacyTip,
+                                contentDescription = "Privacy choices",
+                                tint = NoirAmber
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = onOpenHowToPlay,
                         modifier = Modifier.testTag("how_to_play_button")
