@@ -22,6 +22,17 @@ interface RewardedAdManager {
     )
 }
 
+/** Used while consent is unresolved, denied, or ads are otherwise unavailable. */
+object UnavailableRewardedAdManager : RewardedAdManager {
+    override fun showRewardedAd(
+        purpose: RewardedAdPurpose,
+        onRewardEarned: () -> Unit,
+        onAdUnavailable: () -> Unit,
+    ) {
+        onAdUnavailable()
+    }
+}
+
 class FakeRewardedAdManager : RewardedAdManager {
     override fun showRewardedAd(
         purpose: RewardedAdPurpose,
