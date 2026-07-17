@@ -10,7 +10,7 @@ import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 
 enum class RewardedAdPurpose {
-    CHECK_ANSWER,
+    REVEAL_LIAR,
     REVEAL_SOLUTION
 }
 
@@ -20,6 +20,17 @@ interface RewardedAdManager {
         onRewardEarned: () -> Unit,
         onAdUnavailable: () -> Unit = {}
     )
+}
+
+/** Used while consent is unresolved, denied, or ads are otherwise unavailable. */
+object UnavailableRewardedAdManager : RewardedAdManager {
+    override fun showRewardedAd(
+        purpose: RewardedAdPurpose,
+        onRewardEarned: () -> Unit,
+        onAdUnavailable: () -> Unit,
+    ) {
+        onAdUnavailable()
+    }
 }
 
 class FakeRewardedAdManager : RewardedAdManager {
@@ -37,10 +48,10 @@ class AdMobRewardedAdManager(
 ) : RewardedAdManager {
 
     private val rewardedAds = mutableMapOf<RewardedAdPurpose, RewardedAd?>()
+    private val loadingPurposes = mutableSetOf<RewardedAdPurpose>()
 
     init {
-        load(RewardedAdPurpose.CHECK_ANSWER)
-        load(RewardedAdPurpose.REVEAL_SOLUTION)
+        RewardedAdPurpose.entries.forEach(::load)
     }
 
     override fun showRewardedAd(
@@ -55,14 +66,14 @@ class AdMobRewardedAdManager(
             return
         }
 
+        // Remove the cached instance before showing it so a rapid second tap cannot reuse it.
+        rewardedAds[purpose] = null
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                rewardedAds[purpose] = null
                 load(purpose)
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
-                rewardedAds[purpose] = null
                 load(purpose)
                 onAdUnavailable()
             }
@@ -74,8 +85,10 @@ class AdMobRewardedAdManager(
     }
 
     private fun load(purpose: RewardedAdPurpose) {
+        if (rewardedAds[purpose] != null || !loadingPurposes.add(purpose)) return
+
         val adUnitId = when (purpose) {
-            RewardedAdPurpose.CHECK_ANSWER -> BuildConfig.ADMOB_REWARDED_CHECK_ANSWER_ID
+            RewardedAdPurpose.REVEAL_LIAR -> BuildConfig.ADMOB_REWARDED_REVEAL_LIAR_ID
             RewardedAdPurpose.REVEAL_SOLUTION -> BuildConfig.ADMOB_REWARDED_REVEAL_SOLUTION_ID
         }
 
@@ -85,10 +98,12 @@ class AdMobRewardedAdManager(
             AdRequest.Builder().build(),
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(ad: RewardedAd) {
+                    loadingPurposes.remove(purpose)
                     rewardedAds[purpose] = ad
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
+                    loadingPurposes.remove(purpose)
                     rewardedAds[purpose] = null
                 }
             }

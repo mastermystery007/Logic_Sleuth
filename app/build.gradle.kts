@@ -10,6 +10,12 @@ android {
   namespace = "com.example"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
+  val testAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
+  val testRewardedAdUnitId = "ca-app-pub-3940256099942544/5224354917"
+  val productionAdMobAppId = "ca-app-pub-3812214492151514~6406689884"
+  val productionRewardedRevealLiarId = "ca-app-pub-3812214492151514/3968917161"
+  val productionRewardedRevealSolutionId = "ca-app-pub-3812214492151514/9169272957"
+
   defaultConfig {
     applicationId = "com.mysterybox.deduceit"
     minSdk = 24
@@ -17,16 +23,10 @@ android {
     versionCode = 1
     versionName = "1.0"
 
-    val defaultAdMobAppId = "ca-app-pub-3940256099942544~3347511713"
-    val defaultRewardedAdUnitId = "ca-app-pub-3940256099942544/5224354917"
-    val adMobAppId = providers.gradleProperty("ADMOB_APP_ID").orNull ?: defaultAdMobAppId
-    val rewardedCheckAnswerId = providers.gradleProperty("ADMOB_REWARDED_CHECK_ANSWER_ID").orNull ?: defaultRewardedAdUnitId
-    val rewardedRevealSolutionId = providers.gradleProperty("ADMOB_REWARDED_REVEAL_SOLUTION_ID").orNull ?: defaultRewardedAdUnitId
-
-    manifestPlaceholders["adMobAppId"] = adMobAppId
-    buildConfigField("String", "ADMOB_APP_ID", "\"$adMobAppId\"")
-    buildConfigField("String", "ADMOB_REWARDED_CHECK_ANSWER_ID", "\"$rewardedCheckAnswerId\"")
-    buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$rewardedRevealSolutionId\"")
+    manifestPlaceholders["adMobAppId"] = testAdMobAppId
+    buildConfigField("String", "ADMOB_APP_ID", "\"$testAdMobAppId\"")
+    buildConfigField("String", "ADMOB_REWARDED_REVEAL_LIAR_ID", "\"$testRewardedAdUnitId\"")
+    buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$testRewardedAdUnitId\"")
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -51,11 +51,22 @@ android {
   }
 
   buildTypes {
+    debug {
+      manifestPlaceholders["adMobAppId"] = testAdMobAppId
+      buildConfigField("String", "ADMOB_APP_ID", "\"$testAdMobAppId\"")
+      buildConfigField("String", "ADMOB_REWARDED_REVEAL_LIAR_ID", "\"$testRewardedAdUnitId\"")
+      buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$testRewardedAdUnitId\"")
+    }
     release {
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      
+
+      manifestPlaceholders["adMobAppId"] = productionAdMobAppId
+      buildConfigField("String", "ADMOB_APP_ID", "\"$productionAdMobAppId\"")
+      buildConfigField("String", "ADMOB_REWARDED_REVEAL_LIAR_ID", "\"$productionRewardedRevealLiarId\"")
+      buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$productionRewardedRevealSolutionId\"")
+
       signingConfig = if (hasReleaseSigning) {
         signingConfigs.getByName("release")
       } else {
@@ -115,6 +126,7 @@ dependencies {
   implementation(libs.moshi.kotlin)
   implementation(libs.okhttp)
   implementation(libs.play.services.ads)
+  implementation(libs.user.messaging.platform)
   // implementation(libs.play.services.location)
   implementation(libs.retrofit)
   testImplementation(libs.androidx.compose.ui.test.junit4)
