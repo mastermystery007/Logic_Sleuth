@@ -1,0 +1,62 @@
+name: Reorder case tabs
+
+on:
+  push:
+    branches:
+      - agent/add-production-rewarded-ads
+    paths:
+      - .github/workflows/reorder-case-tabs.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/add-production-rewarded-ads
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make Dossier the first and default tab
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("app/src/main/java/com/example/ui/CasePlayScreen.kt")
+          text = path.read_text(encoding="utf-8")
+
+          old_default = 'var activeTab by remember { mutableStateOf("Cast") }'
+          new_default = 'var activeTab by remember { mutableStateOf("Dossier") }'
+          old_order = 'val tabs = listOf("Cast", "Dossier", "Logic Grid", "Deduce")'
+          new_order = 'val tabs = listOf("Dossier", "Cast", "Logic Grid", "Deduce")'
+
+          if text.count(old_default) != 1:
+              raise SystemExit(f"Expected exactly one old default-tab line, found {text.count(old_default)}")
+          if text.count(old_order) != 1:
+              raise SystemExit(f"Expected exactly one old tab-order line, found {text.count(old_order)}")
+
+          text = text.replace(old_default, new_default, 1)
+          text = text.replace(old_order, new_order, 1)
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Run tests and debug build
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:testDebugUnitTest :app:assembleDebug
+
+      - name: Commit verified change and remove temporary workflow
+        run: |
+          rm .github/workflows/reorder-case-tabs.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/com/example/ui/CasePlayScreen.kt .github/workflows/reorder-case-tabs.yml
+          git commit -m "Open cases on the Dossier tab"
+          git push origin HEAD:agent/add-production-rewarded-ads
