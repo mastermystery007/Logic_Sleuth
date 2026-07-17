@@ -25,7 +25,6 @@ android {
 
     manifestPlaceholders["adMobAppId"] = testAdMobAppId
     buildConfigField("String", "ADMOB_APP_ID", "\"$testAdMobAppId\"")
-    buildConfigField("String", "ADMOB_REWARDED_CHECK_ANSWER_ID", "\"$testRewardedAdUnitId\"")
     buildConfigField("String", "ADMOB_REWARDED_REVEAL_LIAR_ID", "\"$testRewardedAdUnitId\"")
     buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$testRewardedAdUnitId\"")
 
@@ -55,7 +54,6 @@ android {
     debug {
       manifestPlaceholders["adMobAppId"] = testAdMobAppId
       buildConfigField("String", "ADMOB_APP_ID", "\"$testAdMobAppId\"")
-      buildConfigField("String", "ADMOB_REWARDED_CHECK_ANSWER_ID", "\"$testRewardedAdUnitId\"")
       buildConfigField("String", "ADMOB_REWARDED_REVEAL_LIAR_ID", "\"$testRewardedAdUnitId\"")
       buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$testRewardedAdUnitId\"")
     }
@@ -66,8 +64,6 @@ android {
 
       manifestPlaceholders["adMobAppId"] = productionAdMobAppId
       buildConfigField("String", "ADMOB_APP_ID", "\"$productionAdMobAppId\"")
-      // The app currently uses the solution unit for both answer checking and full-solution reveal.
-      buildConfigField("String", "ADMOB_REWARDED_CHECK_ANSWER_ID", "\"$productionRewardedRevealSolutionId\"")
       buildConfigField("String", "ADMOB_REWARDED_REVEAL_LIAR_ID", "\"$productionRewardedRevealLiarId\"")
       buildConfigField("String", "ADMOB_REWARDED_REVEAL_SOLUTION_ID", "\"$productionRewardedRevealSolutionId\"")
 
