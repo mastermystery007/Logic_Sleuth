@@ -1,9 +1,10 @@
 package com.example
 
 import android.content.Context
-import androidx.compose.ui.test.assertDoesNotExist
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ActivityScenario
@@ -58,7 +59,7 @@ class HowToPlayUiTest {
         HowToPlayPreferences.markHowToPlaySeen(context)
         launchActivity()
 
-        composeRule.onNodeWithTag("how_to_play_root").assertDoesNotExist()
+        composeRule.onAllNodesWithTag("how_to_play_root").assertCountEquals(0)
         composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
         composeRule.onNodeWithTag("how_to_play_button").assertIsDisplayed()
     }
