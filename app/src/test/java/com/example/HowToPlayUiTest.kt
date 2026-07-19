@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
@@ -48,7 +49,11 @@ class HowToPlayUiTest {
         launchActivity()
 
         composeRule.onNodeWithTag("how_to_play_root").assertIsDisplayed()
-        composeRule.onNodeWithTag("open_case_files_button").performClick()
+        composeRule.onNodeWithTag("open_case_files_button")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+        composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
         assertTrue(HowToPlayPreferences.hasSeenHowToPlay(context))
@@ -71,8 +76,13 @@ class HowToPlayUiTest {
 
         composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
         composeRule.onNodeWithTag("how_to_play_button").performClick()
+        composeRule.waitForIdle()
         composeRule.onNodeWithTag("how_to_play_root").assertIsDisplayed()
-        composeRule.onNodeWithTag("close_how_to_play_button").performClick()
+        composeRule.onNodeWithTag("close_how_to_play_button")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+        composeRule.waitForIdle()
 
         composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
         composeRule.onNodeWithTag("case_card_1").assertIsDisplayed()
@@ -82,19 +92,30 @@ class HowToPlayUiTest {
     @Test
     fun manualHelpDoesNotMarkFirstLaunchPreferenceWhenItWasUnseen() {
         launchActivity()
-        composeRule.onNodeWithTag("open_case_files_button").performClick()
+        composeRule.onNodeWithTag("open_case_files_button")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+        composeRule.waitForIdle()
+
         context.getSharedPreferences(HowToPlayPreferences.PREFS_NAME, Context.MODE_PRIVATE)
             .edit()
             .putBoolean(HowToPlayPreferences.KEY_HAS_SEEN_HOW_TO_PLAY, false)
             .commit()
 
         composeRule.onNodeWithTag("how_to_play_button").performClick()
-        composeRule.onNodeWithTag("close_how_to_play_button").performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithTag("close_how_to_play_button")
+            .performScrollTo()
+            .assertIsDisplayed()
+            .performClick()
+        composeRule.waitForIdle()
 
         assertFalse(HowToPlayPreferences.hasSeenHowToPlay(context))
     }
 
     private fun launchActivity() {
         scenario = ActivityScenario.launch(MainActivity::class.java)
+        composeRule.waitForIdle()
     }
 }
