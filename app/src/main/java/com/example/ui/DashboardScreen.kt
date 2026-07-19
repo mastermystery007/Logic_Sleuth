@@ -18,8 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.Case
@@ -32,6 +32,7 @@ fun DashboardScreen(
     viewModel: DetectiveViewModel,
     onNavigateToCase: (caseId: Int) -> Unit,
     onOpenHowToPlay: () -> Unit,
+    onOpenPrivacyPolicy: () -> Unit = {},
     showPrivacyOptions: Boolean = false,
     onOpenPrivacyOptions: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -56,6 +57,19 @@ fun DashboardScreen(
                     containerColor = CarbonDark
                 ),
                 actions = {
+                    // The policy link is always available, regardless of region or consent status.
+                    IconButton(
+                        onClick = onOpenPrivacyPolicy,
+                        modifier = Modifier.testTag("privacy_policy_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Policy,
+                            contentDescription = "Privacy policy",
+                            tint = NoirAmber
+                        )
+                    }
+
+                    // Google requires this separate entry point only for eligible UMP users.
                     if (showPrivacyOptions) {
                         IconButton(
                             onClick = onOpenPrivacyOptions,
