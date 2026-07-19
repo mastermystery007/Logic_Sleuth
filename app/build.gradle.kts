@@ -150,19 +150,33 @@ dependencies {
 }
 
 tasks.configureEach {
-    if (name == "assembleRelease" || name == "bundleRelease") {
-        val keystorePathConfig = System.getenv("KEYSTORE_PATH") ?: project.findProperty("KEYSTORE_PATH")?.toString()
-        val storePasswordConfig = System.getenv("STORE_PASSWORD") ?: project.findProperty("STORE_PASSWORD")?.toString()
-        val keyPasswordConfig = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD")?.toString()
-        val hasReleaseSigningConfig = keystorePathConfig != null && storePasswordConfig != null && keyPasswordConfig != null
+  if (name == "assembleRelease" || name == "bundleRelease") {
+    val hasConfiguredReleaseSigning =
+        !System.getenv("KEYSTORE_PATH").isNullOrBlank() &&
+        !System.getenv("STORE_PASSWORD").isNullOrBlank() &&
+        !System.getenv("KEY_PASSWORD").isNullOrBlank() ||
+        !project.findProperty("KEYSTORE_PATH")?.toString().isNullOrBlank() &&
+        !project.findProperty("STORE_PASSWORD")?.toString().isNullOrBlank() &&
+        !project.findProperty("KEY_PASSWORD")?.toString().isNullOrBlank()
 
-        doFirst {
-            if (!hasReleaseSigningConfig) {
-                throw GradleException(
-                    "Release signing configuration is missing. " +
-                    "Set KEYSTORE_PATH, STORE_PASSWORD, and KEY_PASSWORD before running assembleRelease or bundleRelease."
-                )
-            }
-        }
+    // Android Studio's Generate Signed Bundle wizard supplies these temporary
+    // Gradle properties instead of the project's KEYSTORE_* variables.
+    val hasAndroidStudioInjectedSigning = listOf(
+        "android.injected.signing.store.file",
+        "android.injected.signing.store.password",
+        "android.injected.signing.key.alias",
+        "android.injected.signing.key.password",
+    ).all { propertyName ->
+      !project.findProperty(propertyName)?.toString().isNullOrBlank()
     }
+
+    doFirst {
+      if (!hasConfiguredReleaseSigning && !hasAndroidStudioInjectedSigning) {
+        throw GradleException(
+            "Release signing configuration is missing. Use Android Studio's Generate Signed Bundle wizard, " +
+                "or set KEYSTORE_PATH, STORE_PASSWORD, and KEY_PASSWORD before running assembleRelease or bundleRelease."
+        )
+      }
+    }
+  }
 }
