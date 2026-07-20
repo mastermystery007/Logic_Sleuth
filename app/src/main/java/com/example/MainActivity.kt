@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -30,6 +31,7 @@ import com.example.ads.UnavailableRewardedAdManager
 import com.example.privacy.AdConsentManager
 import com.example.ui.CasePlayScreen
 import com.example.ui.DashboardScreen
+import com.example.ui.FirstLaunchGuideDialog
 import com.example.ui.HowToPlayScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.DetectiveViewModel
@@ -63,22 +65,20 @@ class MainActivity : ComponentActivity() {
                 val activity = this@MainActivity
                 val rewardedAdManager by rewardedAdManagerState.collectAsState()
                 val privacyOptionsRequired by privacyOptionsRequiredState.collectAsState()
-                var showHowToPlay by remember {
-                    mutableStateOf(!HowToPlayPreferences.hasSeenHowToPlay(activity))
-                }
-                var isFirstLaunchHowToPlay by remember {
-                    mutableStateOf(showHowToPlay)
+                var showHowToPlay by remember { mutableStateOf(false) }
+                var showFirstLaunchGuide by remember {
+                    mutableStateOf(!HowToPlayPreferences.hasSeenNavigationGuide(activity))
                 }
 
                 if (showHowToPlay) {
+                    BackHandler {
+                        showHowToPlay = false
+                    }
                     HowToPlayScreen(
                         onComplete = {
-                            if (isFirstLaunchHowToPlay) {
-                                HowToPlayPreferences.markHowToPlaySeen(activity)
-                            }
                             showHowToPlay = false
                         },
-                        isFirstLaunch = isFirstLaunchHowToPlay
+                        isFirstLaunch = false
                     )
                 } else {
                     Scaffold(
@@ -96,7 +96,6 @@ class MainActivity : ComponentActivity() {
                                         navController.navigate("case_play/$caseId")
                                     },
                                     onOpenHowToPlay = {
-                                        isFirstLaunchHowToPlay = false
                                         showHowToPlay = true
                                     },
                                     onOpenPrivacyPolicy = {
@@ -113,6 +112,15 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 )
+
+                                if (showFirstLaunchGuide) {
+                                    FirstLaunchGuideDialog(
+                                        onDismiss = {
+                                            HowToPlayPreferences.markNavigationGuideSeen(activity)
+                                            showFirstLaunchGuide = false
+                                        }
+                                    )
+                                }
                             }
                             composable(
                                 route = "case_play/{caseId}",
