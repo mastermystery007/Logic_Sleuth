@@ -11,7 +11,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -45,33 +44,35 @@ class HowToPlayUiTest {
     }
 
     @Test
-    fun firstLaunchDisplaysTutorialAndCompletingStoresSeenPreference() {
+    fun firstLaunchDisplaysNavigationGuideAndDismissStoresSeenPreference() {
         launchActivity()
 
-        composeRule.onNodeWithTag("how_to_play_root").assertIsDisplayed()
-        composeRule.onNodeWithTag("open_case_files_button")
-            .performScrollTo()
+        composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
+        composeRule.onNodeWithTag("first_launch_guide").assertIsDisplayed()
+        composeRule.onNodeWithTag("dismiss_first_launch_guide")
             .assertIsDisplayed()
             .performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
-        assertTrue(HowToPlayPreferences.hasSeenHowToPlay(context))
+        composeRule.onAllNodesWithTag("first_launch_guide").assertCountEquals(0)
+        composeRule.onNodeWithTag("case_card_1").assertIsDisplayed()
+        assertTrue(HowToPlayPreferences.hasSeenNavigationGuide(context))
     }
 
     @Test
-    fun laterLaunchSkipsAutomaticOnboardingAndShowsHelpButton() {
-        HowToPlayPreferences.markHowToPlaySeen(context)
+    fun laterLaunchSkipsNavigationGuideAndShowsHeaderButtons() {
+        HowToPlayPreferences.markNavigationGuideSeen(context)
         launchActivity()
 
-        composeRule.onAllNodesWithTag("how_to_play_root").assertCountEquals(0)
+        composeRule.onAllNodesWithTag("first_launch_guide").assertCountEquals(0)
         composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
         composeRule.onNodeWithTag("how_to_play_button").assertIsDisplayed()
+        composeRule.onNodeWithTag("privacy_policy_button").assertIsDisplayed()
     }
 
     @Test
-    fun dashboardHelpButtonOpensTutorialAndCloseReturnsToDashboardWithoutRewritingPreference() {
-        HowToPlayPreferences.markHowToPlaySeen(context)
+    fun dashboardHelpButtonOpensTutorialAndCloseReturnsToDashboard() {
+        HowToPlayPreferences.markNavigationGuideSeen(context)
         launchActivity()
 
         composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
@@ -86,32 +87,24 @@ class HowToPlayUiTest {
 
         composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
         composeRule.onNodeWithTag("case_card_1").assertIsDisplayed()
-        assertTrue(HowToPlayPreferences.hasSeenHowToPlay(context))
     }
 
     @Test
-    fun manualHelpDoesNotMarkFirstLaunchPreferenceWhenItWasUnseen() {
+    fun systemBackFromHowToPlayReturnsToDashboard() {
+        HowToPlayPreferences.markNavigationGuideSeen(context)
         launchActivity()
-        composeRule.onNodeWithTag("open_case_files_button")
-            .performScrollTo()
-            .assertIsDisplayed()
-            .performClick()
-        composeRule.waitForIdle()
-
-        context.getSharedPreferences(HowToPlayPreferences.PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean(HowToPlayPreferences.KEY_HAS_SEEN_HOW_TO_PLAY, false)
-            .commit()
 
         composeRule.onNodeWithTag("how_to_play_button").performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithTag("close_how_to_play_button")
-            .performScrollTo()
-            .assertIsDisplayed()
-            .performClick()
+        composeRule.onNodeWithTag("how_to_play_root").assertIsDisplayed()
+
+        scenario?.onActivity { activity ->
+            activity.onBackPressedDispatcher.onBackPressed()
+        }
         composeRule.waitForIdle()
 
-        assertFalse(HowToPlayPreferences.hasSeenHowToPlay(context))
+        composeRule.onNodeWithTag("dashboard_root").assertIsDisplayed()
+        composeRule.onNodeWithTag("case_card_1").assertIsDisplayed()
     }
 
     private fun launchActivity() {
