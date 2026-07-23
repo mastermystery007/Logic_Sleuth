@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +35,7 @@ fun FirstLaunchGuideDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        modifier = Modifier.testTag("first_launch_guide"),
         containerColor = CharcoalSurface,
         titleContentColor = NoirAmber,
         textContentColor = GridWhite,
@@ -89,6 +91,7 @@ fun FirstLaunchGuideDialog(
         confirmButton = {
             Button(
                 onClick = onDismiss,
+                modifier = Modifier.testTag("dismiss_first_launch_guide"),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = NoirAmber,
                     contentColor = CarbonDark
